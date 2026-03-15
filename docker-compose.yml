@@ -52,6 +52,7 @@ services:
       - ./nginx/jamali.conf:/etc/nginx/conf.d/default.conf:ro
       - ./index.html:/usr/share/nginx/html/index.html:ro
       - ./admin.html:/usr/share/nginx/html/admin.html:ro
+      - ./logo.svg:/usr/share/nginx/html/logo.svg:ro
     networks:
       - jamali-net
     depends_on:

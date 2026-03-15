@@ -12,6 +12,7 @@ RUN pip install --no-cache-dir -r requirements.txt gunicorn
 COPY app.py .
 COPY index.html .
 COPY admin.html .
+COPY logo.svg .
 
 EXPOSE 5000
 
