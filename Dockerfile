@@ -11,6 +11,7 @@ RUN pip install --no-cache-dir -r requirements.txt gunicorn
 
 COPY app.py .
 COPY index.html .
+COPY admin.html .
 
 EXPOSE 5000
 
