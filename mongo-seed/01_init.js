@@ -154,4 +154,14 @@ db.products.insertMany([
   }
 ]);
 
-print('✅ Jamali DB initialisée : ' + db.products.countDocuments() + ' parfums insérés.');
+print('Jamali DB initialisee : ' + db.products.countDocuments() + ' parfums inseres.');
+
+// ─── Utilisateur applicatif (readWrite sur jamali_db) ────────────────────────
+// Ce user est celui référencé dans MONGO_URI
+db.createUser({
+  user: "jamali_admin",
+  pwd:  "JamaliApp2026",
+  roles: [{ role: "readWrite", db: "jamali_db" }]
+});
+
+print('User jamali_admin cree avec acces readWrite sur jamali_db.');

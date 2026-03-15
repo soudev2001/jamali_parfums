@@ -26,6 +26,10 @@ services:
     image: mongo:7.0
     container_name: jamali-mongo
     restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+      MONGO_INITDB_DATABASE: jamali_db
     volumes:
       - jamali-mongo-data:/data/db
       - ./mongo-seed:/docker-entrypoint-initdb.d:ro
@@ -33,10 +37,10 @@ services:
       - jamali-net
     # Pas exposé publiquement : accès uniquement via le réseau interne
     healthcheck:
-      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      test: ["CMD-SHELL", "mongosh --quiet --eval 'db.adminCommand({ping:1})' -u root -p $$MONGO_INITDB_ROOT_PASSWORD --authenticationDatabase admin || exit 1"]
       interval: 10s
       timeout: 5s
-      start_period: 20s
+      start_period: 30s
       retries: 5
 
   # ─── Nginx (frontend + proxy) ─────────────────────────────────────
