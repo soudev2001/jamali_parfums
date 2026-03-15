@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+
+  # ─── Backend Flask ───────────────────────────────────────────────
+  jamali-flask:
+    build: .
+    image: jamali-flask-app
+    container_name: jamali-flask
+    restart: unless-stopped
+    env_file: .env
+    networks:
+      - jamali-net
+    depends_on:
+      jamali-mongo:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/"]
+      interval: 30s
+      timeout: 10s
+      start_period: 20s
+      retries: 3
+
+  # ─── MongoDB ─────────────────────────────────────────────────────
+  jamali-mongo:
+    image: mongo:7.0
+    container_name: jamali-mongo
+    restart: unless-stopped
+    volumes:
+      - jamali-mongo-data:/data/db
+      - ./mongo-seed:/docker-entrypoint-initdb.d:ro
+    networks:
+      - jamali-net
+    # Pas exposé publiquement : accès uniquement via le réseau interne
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      start_period: 20s
+      retries: 5
+
+  # ─── Nginx (frontend + proxy) ─────────────────────────────────────
+  jamali-nginx:
+    image: nginx:alpine
+    container_name: jamali-nginx
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx/jamali.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./index.html:/usr/share/nginx/html/index.html:ro
+    networks:
+      - jamali-net
+    depends_on:
+      - jamali-flask
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  jamali-net:
+    name: jamali-net
+
+volumes:
+  jamali-mongo-data:
+    name: jamali-mongo-data

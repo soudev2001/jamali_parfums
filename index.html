@@ -1,0 +1,1057 @@
+﻿<!DOCTYPE html>
+<html lang="fr" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jamali Parfum | عطور جمالي - Catalogue Officiel</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        amber: { 400: '#fbbf24', 500: '#f59e0b', 600: '#d97706', 900: '#78350f' },
+                        rose: { 500: '#f43f5e', 600: '#e11d48' },
+                        blue: { 500: '#3b82f6', 600: '#2563eb' }
+                    },
+                    fontFamily: {
+                        serif: ['Georgia', 'serif'],
+                        arabic: ['"Amiri"', 'serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap');
+
+        /* Smooth scrolling and transitions */
+        html { scroll-behavior: smooth; }
+        .view-section { display: none; animation: fadeIn 0.4s ease-in-out; }
+        .view-section.active { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #171717; }
+        ::-webkit-scrollbar-thumb { background: #d97706; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #f59e0b; }
+
+        /* Hide scrollbar for category tabs */
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Chat Window Animation */
+        #chat-window.show { display: flex; animation: slideUp 0.3s ease-out forwards; }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+    </style>
+</head>
+<body class="bg-neutral-50 text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100 transition-colors duration-300 min-h-screen flex flex-col relative">
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-4 left-4 md:left-auto md:right-4 bg-green-600 text-white px-6 py-3 rounded-lg shadow-2xl transform translate-y-20 opacity-0 transition-all duration-300 z-50 flex items-center">
+        <i class="ph ph-check-circle text-xl mr-2"></i>
+        <span id="toast-message">Message</span>
+    </div>
+
+    <!-- Floating Action Buttons (Bottom Right) -->
+    <div class="fixed bottom-6 right-6 flex flex-col items-end space-y-3 z-40">
+        <!-- Tour Button -->
+        <button onclick="startTour()" class="w-12 h-12 bg-neutral-200 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 rounded-full shadow-lg flex items-center justify-center hover:bg-amber-500 hover:text-white dark:hover:bg-amber-600 transition-all group relative" title="Relancer la visite">
+            <i class="ph-fill ph-play-circle text-2xl group-hover:scale-110 transition-transform"></i>
+            <span class="absolute right-14 bg-black text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">Démo Interactive</span>
+        </button>
+        <!-- Chatbot Button -->
+        <button onclick="toggleChat()" class="w-16 h-16 bg-black dark:bg-amber-600 text-white dark:text-black rounded-full shadow-2xl flex items-center justify-center hover:scale-110 transition-transform relative group">
+            <i class="ph-fill ph-chat-teardrop-dots text-3xl"></i>
+            <span class="absolute top-0 right-0 w-4 h-4 bg-red-500 border-2 border-white dark:border-neutral-900 rounded-full animate-pulse"></span>
+        </button>
+    </div>
+
+    <!-- Chatbot Window -->
+    <div id="chat-window" class="fixed bottom-28 right-6 w-[90vw] md:w-80 h-[450px] bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl border border-neutral-200 dark:border-neutral-800 hidden flex-col z-50 overflow-hidden">
+        <!-- Header -->
+        <div class="bg-black dark:bg-neutral-950 text-white p-4 flex justify-between items-center border-b border-neutral-800">
+            <div class="flex items-center">
+                <div class="w-8 h-8 bg-amber-600 rounded-full flex items-center justify-center mr-3">
+                    <i class="ph-fill ph-robot text-xl"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-sm">Assistant Jamali</h3>
+                    <p class="text-[10px] text-amber-500 flex items-center"><span class="w-2 h-2 bg-green-500 rounded-full mr-1"></span> En ligne</p>
+                </div>
+            </div>
+            <button onclick="toggleChat()" class="text-neutral-400 hover:text-white transition">
+                <i class="ph ph-x text-xl"></i>
+            </button>
+        </div>
+        <!-- Messages Area -->
+        <div id="chat-messages" class="flex-1 p-4 overflow-y-auto bg-neutral-50 dark:bg-neutral-900 flex flex-col space-y-3">
+            <!-- Initial Bot Message -->
+            <div class="flex items-start">
+                <div class="bg-neutral-200 dark:bg-neutral-800 text-neutral-900 dark:text-white px-4 py-2 rounded-2xl rounded-tl-none text-sm max-w-[85%] shadow-sm">
+                    Bonjour ! 👋 Bienvenue chez Jamali Parfum. Comment puis-je vous aider aujourd'hui ?<br><br>
+                    <span class="font-arabic text-xs" dir="rtl">مرحباً بك في عطور جمالي. كيف يمكنني مساعدتك اليوم؟</span>
+                </div>
+            </div>
+        </div>
+        <!-- Input Area -->
+        <div class="p-3 bg-white dark:bg-neutral-950 border-t border-neutral-200 dark:border-neutral-800 flex items-center">
+            <input type="text" id="chat-input" onkeypress="handleChatKeyPress(event)" placeholder="Votre message..." class="flex-1 bg-neutral-100 dark:bg-neutral-900 text-neutral-900 dark:text-white px-4 py-2 rounded-full text-sm outline-none focus:ring-1 focus:ring-amber-500 transition-shadow">
+            <button onclick="sendChatMessage()" class="ml-2 w-10 h-10 bg-amber-600 text-black rounded-full flex items-center justify-center hover:bg-amber-500 transition">
+                <i class="ph-fill ph-paper-plane-right"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Tour / Demo Modal Overlay -->
+    <div id="tour-overlay" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-[60] hidden flex-col items-center justify-center p-4">
+        <div class="bg-white dark:bg-neutral-900 rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl relative">
+            <div id="tour-content" class="p-8 text-center relative z-10">
+                <!-- Content injected via JS -->
+            </div>
+            <!-- Progress Dots -->
+            <div id="tour-dots" class="flex justify-center space-x-2 pb-6">
+                <!-- Injected via JS -->
+            </div>
+        </div>
+        <button onclick="endTour()" class="mt-6 text-white/70 hover:text-white transition underline font-bold text-sm tracking-wider uppercase">
+            Passer l'introduction (Skip)
+        </button>
+    </div>
+
+    <!-- Promo Bar -->
+    <div class="bg-amber-600 text-black text-center text-xs sm:text-sm py-2 font-bold flex justify-center items-center space-x-4 px-4 z-30 relative">
+        <span>🇲🇦 Livraison partout au Maroc - الدفع عند الاستلام</span>
+    </div>
+
+    <!-- Header / Navbar -->
+    <header class="sticky top-0 z-30 bg-white/95 dark:bg-black/95 backdrop-blur-md shadow-sm dark:shadow-neutral-900 border-b border-neutral-200 dark:border-neutral-800 transition-colors">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <!-- Logo -->
+                <div class="flex items-center cursor-pointer group" onclick="switchView('store')">
+                    <div class="w-10 h-10 bg-gradient-to-br from-amber-400 to-amber-600 rounded-full flex items-center justify-center mr-3 shadow-lg">
+                        <span class="font-serif font-bold text-black text-xl">JP</span>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-serif font-bold tracking-widest text-black dark:text-amber-500">JAMALI</h1>
+                        <p class="text-[10px] tracking-[0.2em] text-neutral-500 uppercase font-arabic">عطور</p>
+                    </div>
+                </div>
+
+                <!-- Desktop Navigation -->
+                <nav class="hidden md:flex space-x-8 items-center">
+                    <a href="#store-catalog" onclick="switchView('store')" class="text-sm font-bold hover:text-amber-600 transition">Catalogue / الكتالوج</a>
+                    <a href="#top-ventes" onclick="switchView('store')" class="text-sm font-bold hover:text-amber-600 transition">Top Ventes / المبيعات</a>
+                    <a href="#about-us" onclick="switchView('store')" class="text-sm font-bold hover:text-amber-600 transition">À Propos / من نحن</a>
+                    <a href="#contact" onclick="switchView('store')" class="text-sm font-bold hover:text-amber-600 transition">Contact / اتصل بنا</a>
+                </nav>
+
+                <!-- Actions -->
+                <div class="flex items-center space-x-2 sm:space-x-4">
+                    <button onclick="toggleDarkMode()" class="p-2 rounded-full hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors">
+                        <i id="theme-icon" class="ph ph-sun text-xl"></i>
+                    </button>
+
+                    <button id="nav-cart-btn" onclick="switchView('cart')" class="relative flex items-center p-2 rounded-full hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors">
+                        <i class="ph ph-shopping-cart text-2xl"></i>
+                        <span id="cart-badge" class="absolute top-0 right-0 bg-amber-600 text-black text-[10px] font-bold rounded-full h-4 w-4 flex items-center justify-center translate-x-1 -translate-y-1 hidden">0</span>
+                    </button>
+
+                    <button onclick="attemptAdminLogin()" class="p-2 rounded-full hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors text-neutral-400 hover:text-amber-500" title="Admin">
+                        <i class="ph ph-gear-six text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-grow relative z-10">
+
+        <!-- ================= STOREFRONT VIEW ================= -->
+        <div id="view-store" class="view-section active">
+            <!-- Hero Banner -->
+            <div class="relative bg-black h-[400px] flex items-center justify-center overflow-hidden">
+                <div class="absolute inset-0 opacity-50 dark:opacity-40">
+                    <img src="https://images.unsplash.com/photo-1616949755610-8c9bbc08f138?auto=format&fit=crop&q=80&w=2000" class="w-full h-full object-cover" alt="Hero">
+                    <div class="absolute inset-0 bg-gradient-to-t from-neutral-50 dark:from-neutral-950 to-transparent"></div>
+                </div>
+                <div class="relative z-10 text-center px-4 mt-10">
+                    <h2 class="text-5xl md:text-7xl font-serif text-white mb-4 drop-shadow-2xl">L'Élégance Absolue</h2>
+                    <h3 class="text-3xl md:text-4xl font-arabic text-amber-400 drop-shadow-lg mb-6" dir="rtl">الأناقة المطلقة في كل قطرة</h3>
+                    <a href="#store-catalog" class="inline-block bg-amber-600 text-black font-bold uppercase tracking-wider px-8 py-3 rounded-full hover:bg-amber-500 transition shadow-lg">
+                        Découvrir | اكتشف
+                    </a>
+                </div>
+            </div>
+
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12" id="store-catalog">
+
+                <!-- Toolbar: Search & Categories -->
+                <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4 bg-white dark:bg-neutral-900 p-4 rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-800 sticky top-20 z-20">
+
+                    <!-- Search Bar -->
+                    <div class="relative w-full md:w-1/3">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="ph ph-magnifying-glass text-neutral-400"></i>
+                        </div>
+                        <input type="text" id="search-input" onkeyup="handleSearch()" placeholder="Rechercher un parfum, marque... (بحث)"
+                            class="block w-full pl-10 pr-3 py-2 border border-neutral-300 dark:border-neutral-700 rounded-xl leading-5 bg-neutral-50 dark:bg-neutral-950 text-neutral-900 dark:text-white placeholder-neutral-500 focus:outline-none focus:ring-1 focus:ring-amber-500 focus:border-amber-500 sm:text-sm transition-colors">
+                    </div>
+
+                    <!-- Category Tabs -->
+                    <div class="flex space-x-2 bg-neutral-100 dark:bg-neutral-950 p-1 rounded-xl overflow-x-auto hide-scrollbar w-full md:w-auto">
+                        <button onclick="setCategory('Tous')" id="tab-Tous" class="cat-tab px-4 py-2 text-sm font-bold rounded-lg bg-amber-600 text-black shadow whitespace-nowrap">Tous / الكل</button>
+                        <button onclick="setCategory('Homme')" id="tab-Homme" class="cat-tab px-4 py-2 text-sm font-bold rounded-lg text-neutral-500 hover:text-black dark:hover:text-white whitespace-nowrap">Homme / رجالي</button>
+                        <button onclick="setCategory('Femme')" id="tab-Femme" class="cat-tab px-4 py-2 text-sm font-bold rounded-lg text-neutral-500 hover:text-black dark:hover:text-white whitespace-nowrap">Femme / نسائي</button>
+                        <button onclick="setCategory('Oriental')" id="tab-Oriental" class="cat-tab px-4 py-2 text-sm font-bold rounded-lg text-neutral-500 hover:text-black dark:hover:text-white whitespace-nowrap">Oriental / شرقي</button>
+                    </div>
+                </div>
+
+                <!-- Section: Top Ventes (Only visible when Category is 'Tous' and no search is active) -->
+                <div id="top-ventes" class="mb-16">
+                    <div class="flex items-center mb-6">
+                        <h3 class="text-2xl font-serif font-bold text-black dark:text-white mr-4">Top Ventes <span class="text-amber-600">Jamali</span></h3>
+                        <div class="h-px bg-neutral-200 dark:bg-neutral-800 flex-1"></div>
+                        <h3 class="text-2xl font-arabic font-bold text-amber-600 ml-4" dir="rtl">أفضل المبيعات</h3>
+                    </div>
+                    <div id="top-ventes-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <!-- Injected via JS -->
+                    </div>
+                </div>
+
+                <!-- Products Grid -->
+                <div class="flex items-center mb-6" id="catalog-title-container">
+                    <h3 class="text-xl font-serif font-bold text-neutral-500 mr-4">Notre Catalogue Complet</h3>
+                    <div class="h-px bg-neutral-200 dark:bg-neutral-800 flex-1"></div>
+                </div>
+                <div id="product-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <!-- Injected via JS -->
+                </div>
+                <div id="no-results" class="hidden text-center py-12 text-neutral-500 font-arabic text-lg">
+                    Aucun parfum trouvé. لا يوجد عطر بهذا الاسم.
+                </div>
+            </div>
+
+            <!-- About Us Section -->
+            <section id="about-us" class="bg-white dark:bg-neutral-900 py-16 border-t border-neutral-200 dark:border-neutral-800">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+                    <div>
+                        <h2 class="text-3xl font-serif font-bold mb-4">Qui sommes-nous ?</h2>
+                        <h3 class="text-2xl font-arabic text-amber-600 mb-6" dir="rtl">من نحن؟</h3>
+                        <p class="text-neutral-600 dark:text-neutral-400 mb-4 leading-relaxed">
+                            Jamali Parfum est votre destination numéro un pour les parfums d'exception au Maroc. Nous sélectionnons rigoureusement les meilleures inspirations des grandes marques mondiales et les senteurs orientales les plus pures (Oud, Musc, Ambre).
+                        </p>
+                        <p class="text-neutral-600 dark:text-neutral-400 font-arabic leading-relaxed text-right" dir="rtl">
+                            عطور جمالي هي وجهتك الأولى للعطور الاستثنائية في المغرب. نختار بعناية أفضل الإلهامات من العلامات التجارية العالمية الرائدة وأرقى الروائح الشرقية (العود، المسك، العنبر) لنقدم لك جودة لا مثيل لها وبأسعار مناسبة. ثبات، فخامة، ورقي.
+                        </p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <img src="https://images.unsplash.com/photo-1594035910387-fea47794261f?auto=format&fit=crop&q=80&w=400" class="rounded-2xl shadow-lg w-full h-48 object-cover">
+                        <img src="https://images.unsplash.com/photo-1615397347318-620251781297?auto=format&fit=crop&q=80&w=400" class="rounded-2xl shadow-lg w-full h-48 object-cover mt-8">
+                    </div>
+                </div>
+            </section>
+
+            <!-- Testimonials -->
+            <section id="testimonials" class="py-16">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                    <h2 class="text-3xl font-serif font-bold mb-2">Avis de nos Clients</h2>
+                    <h3 class="text-2xl font-arabic text-amber-600 mb-10" dir="rtl">آراء عملائنا الكرام</h3>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <div class="bg-white dark:bg-neutral-900 p-6 rounded-2xl shadow-sm border border-neutral-100 dark:border-neutral-800 relative">
+                            <i class="ph-fill ph-quotes text-4xl text-amber-500/20 absolute top-4 left-4"></i>
+                            <div class="flex justify-center mb-2 text-amber-500"><i class="ph-fill ph-star"></i><i class="ph-fill ph-star"></i><i class="ph-fill ph-star"></i><i class="ph-fill ph-star"></i><i class="ph-fill ph-star"></i></div>
+                            <p class="text-sm italic mb-4">"Qualité incroyable ! L'odeur tient toute la journée. Livraison rapide à Casablanca."</p>
+                            <p class="font-bold text-sm text-amber-600">- Youssef B.</p>
+                        </div>
+                        <div class="bg-white dark:bg-neutral-900 p-6 rounded-2xl shadow-sm border border-neutral-100 dark:border-neutral-800 relative">
+                            <i class="ph-fill ph-quotes text-4xl text-amber-500/20 absolute top-4 left-4"></i>
+                            <div class="flex justify-center mb-2 text-amber-500"><i class="ph-fill ph-star"></i><i class="ph-fill ph-star"></i><i class="ph-fill ph-star"></i><i class="ph-fill ph-star"></i><i class="ph-fill ph-star"></i></div>
+                            <p class="text-sm font-arabic mb-4" dir="rtl">"عطور رائعة وثبات ممتاز. عطر مسك الطهارة والعود الملكي من أحسن ما جربت. تبارك الله عليكم."</p>
+                            <p class="font-bold text-sm text-amber-600">- Fatima Z.</p>
+                        </div>
+                        <div class="bg-white dark:bg-neutral-900 p-6 rounded-2xl shadow-sm border border-neutral-100 dark:border-neutral-800 relative">
+                            <i class="ph-fill ph-quotes text-4xl text-amber-500/20 absolute top-4 left-4"></i>
+                            <div class="flex justify-center mb-2 text-amber-500"><i class="ph-fill ph-star"></i><i class="ph-fill ph-star"></i><i class="ph-fill ph-star"></i><i class="ph-fill ph-star"></i><i class="ph-half ph-star"></i></div>
+                            <p class="text-sm italic mb-4">"Service client très réactif sur WhatsApp. J'ai commandé Style Baccarat et l'odeur est identique."</p>
+                            <p class="font-bold text-sm text-amber-600">- Meriem T.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- ================= CART VIEW ================= -->
+        <div id="view-cart" class="view-section max-w-4xl mx-auto px-4 py-12">
+            <div class="flex items-center justify-between mb-8">
+                <button onclick="switchView('store')" class="text-neutral-500 hover:text-black dark:hover:text-white flex items-center transition font-bold">
+                    <i class="ph ph-arrow-left mr-2"></i> Continuer les achats
+                </button>
+                <div class="text-right">
+                    <h2 class="text-3xl font-serif">Panier</h2>
+                    <h3 class="text-xl font-arabic text-amber-600" dir="rtl">سلة التسوق</h3>
+                </div>
+            </div>
+            <div id="cart-container"></div>
+        </div>
+
+        <!-- ================= ADMIN VIEW ================= -->
+        <div id="view-admin" class="view-section max-w-7xl mx-auto px-4 py-12">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 bg-white dark:bg-neutral-900 p-6 rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-800">
+                <div>
+                    <h2 class="text-2xl font-serif font-bold text-amber-600 flex items-center">
+                        <i class="ph-fill ph-shield-check mr-2"></i> CMS Administration
+                    </h2>
+                    <p class="text-sm text-neutral-500 mt-1">Gérez le catalogue et les paramètres WhatsApp.</p>
+                </div>
+                <div class="flex items-center space-x-4 mt-4 md:mt-0">
+                    <div class="flex items-center bg-neutral-100 dark:bg-neutral-950 px-3 py-2 rounded-lg border border-neutral-200 dark:border-neutral-800">
+                        <i class="ph ph-whatsapp text-green-500 mr-2"></i>
+                        <input type="text" id="admin-phone" onchange="savePhone()" class="bg-transparent border-none outline-none w-32 font-mono text-sm font-bold" placeholder="212600000000">
+                    </div>
+                    <button onclick="logoutAdmin()" class="bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white px-4 py-2 rounded-lg font-bold text-sm transition">
+                        Quitter
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-800 shadow-sm overflow-hidden">
+                <div class="p-4 border-b border-neutral-200 dark:border-neutral-800 flex justify-between items-center bg-neutral-50 dark:bg-neutral-950">
+                    <h3 class="font-bold">Base de données Catalogue (<span id="stat-total-products">0</span> parfums)</h3>
+                </div>
+                <div class="overflow-x-auto max-h-[600px]">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-neutral-100 dark:bg-neutral-800 text-neutral-500 sticky top-0 shadow-sm">
+                            <tr><th class="p-4">Réf</th><th class="p-4">Marque</th><th class="p-4">Parfum</th><th class="p-4">Catégorie</th><th class="p-4">Prix</th></tr>
+                        </thead>
+                        <tbody id="admin-table-body" class="divide-y divide-neutral-200 dark:divide-neutral-800">
+                            <!-- Injected -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer / Contact -->
+    <footer id="contact" class="bg-neutral-950 text-neutral-400 pt-16 pb-8 border-t border-amber-900/30 mt-auto relative z-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-12 mb-12 text-center md:text-left">
+                <!-- Brand -->
+                <div>
+                    <div class="flex items-center justify-center md:justify-start mb-4">
+                        <div class="w-10 h-10 bg-gradient-to-br from-amber-400 to-amber-600 rounded-full flex items-center justify-center mr-3">
+                            <span class="font-serif font-bold text-black text-xl">JP</span>
+                        </div>
+                        <h2 class="text-2xl font-serif font-bold text-white tracking-widest">JAMALI</h2>
+                    </div>
+                    <p class="text-sm mb-4">La référence de la parfumerie alternative et orientale au Maroc.</p>
+                    <p class="text-sm font-arabic" dir="rtl">المرجع الأول للعطور البديلة والشرقية في المغرب.</p>
+                </div>
+
+                <!-- Quick Links -->
+                <div class="flex flex-col items-center md:items-start">
+                    <h3 class="text-white font-bold uppercase tracking-wider mb-4">Liens Rapides / روابط</h3>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#" onclick="switchView('store'); setCategory('Homme')" class="hover:text-amber-500 transition">Parfums Homme (عطور رجالية)</a></li>
+                        <li><a href="#" onclick="switchView('store'); setCategory('Femme')" class="hover:text-amber-500 transition">Parfums Femme (عطور نسائية)</a></li>
+                        <li><a href="#" onclick="switchView('store'); setCategory('Oriental')" class="hover:text-amber-500 transition">Parfums Orientaux (عطور شرقية)</a></li>
+                    </ul>
+                </div>
+
+                <!-- Contact Info -->
+                <div class="flex flex-col items-center md:items-start">
+                    <h3 class="text-white font-bold uppercase tracking-wider mb-4">Contact / اتصل بنا</h3>
+                    <ul class="space-y-3 text-sm">
+                        <li>
+                            <a href="#" class="flex items-center hover:text-white transition group">
+                                <i class="ph-fill ph-whatsapp-logo text-green-500 text-xl mr-3 group-hover:scale-110 transition"></i>
+                                <span class="font-mono text-lg font-bold" id="footer-phone">+212 700 76 28 49</span>
+                            </a>
+                        </li>
+                        <li class="flex items-center justify-center md:justify-start">
+                            <i class="ph-fill ph-map-pin text-amber-500 text-xl mr-3"></i>
+                            <span> شارع تمارة أمام لعدولات، عين الشق - الدار البيضاء<br>(Rue Témara, Ain Chock - Casablanca)</span>
+                        </li>
+                        <li class="flex items-center justify-center md:justify-start">
+                            <i class="ph-fill ph-truck text-amber-500 text-xl mr-3"></i>
+                            <span>Livraison 24/48h partout au Maroc</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="border-t border-neutral-800 pt-8 text-center text-xs flex flex-col md:flex-row justify-between items-center">
+                <p>&copy; 2026 Jamali Parfum. Tous droits réservés. جميع الحقوق محفوظة</p>
+                <div class="flex space-x-4 mt-4 md:mt-0">
+                    <a href="#" class="text-neutral-500 hover:text-white"><i class="ph-fill ph-instagram-logo text-2xl"></i></a>
+                    <a href="#" class="text-neutral-500 hover:text-white"><i class="ph-fill ph-facebook-logo text-2xl"></i></a>
+                    <a href="#" class="text-neutral-500 hover:text-white"><i class="ph-fill ph-tiktok-logo text-2xl"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script>
+        /* ================= DATA EXTRACTION ================= */
+        const rawDataMen = [
+            { b: "Dolce & Gabbana", items: ["001-Style DG Homme", "002-Style The One", "003-Style The One Sport", "004-Style K", "005-Style Light Blue Homme"] },
+            { b: "Dunhill", items: ["006-Style Désire", "007-Style Désire Blue"] },
+            { b: "Giorgio Armani", items: ["008-Style Acqua Di Gio", "009-Style Armani Code Profumo", "010-Style Stronger with you", "011-Style Stronger Absolutely", "012-Style Stronger with Intensely"] },
+            { b: "Givenchy", items: ["013-Style Gentleman 2017", "014-Style Gentleman EDP Réserve Privée", "015-Style Boisée Givenchy", "016-Style Only Gentleman", "017-Style π"] },
+            { b: "Hermès", items: ["018-Style Terre d'Hermès"] },
+            { b: "Hugo Boss", items: ["019-Style Boss Bottled", "020-Style Boss Bottled Tonic", "021-Style Boss The Scent", "022-Style Hugo/Hugo Boss"] },
+            { b: "Jean Paul Gaultier", items: ["023-Style Le Male", "024-Style Le Male Elixir", "025-Style Scandal Homme", "026-Style Ultra male"] },
+            { b: "Azzaro", items: ["027-Style Chrome", "028-Style The Most Wanted", "029-STyle Wanted"] },
+            { b: "Acqua Di Parma", items: ["030-Style Acqua Di Parma Oud et Spice"] },
+            { b: "Antonio Banderas", items: ["031-Style Blue Seduction Homme"] },
+            { b: "Bvlgari", items: ["032-Style Man In Black"] },
+            { b: "Lacoste", items: ["033-Style Lacoste Noir", "034-Style Lacoste Blanc", "035-Style Lacoste Rouge", "036-Style Lacoste Essential"] },
+            { b: "Carolina Herrera", items: ["037-Style 212 Men", "038-Style 212 Vip Homme", "039-Style Bad boy"] },
+            { b: "Chanel", items: ["040-Style Allure Homme Sport", "041-Style Bleu de Chanel"] },
+            { b: "Christian Dior", items: ["042-Style Diore Homme Intense", "043-Style Fahrenheit", "044-Style Sauvage", "045-Style Sauvage Elixir"] },
+            { b: "Creed", items: ["046-Style Aventus", "047-Style Silver Mountain Water"] },
+            { b: "Davidoff", items: ["048-Style Cool Water"] },
+            { b: "Diesel", items: ["049-Style Fuel for life", "050-Style Only the Brave"] },
+            { b: "Paco Rabanne", items: ["051-Style Black XS l'encès Homme", "052-Style Invictus", "053-Style One Million", "054-Style One Million Intense", "055-Style Phantom"] },
+            { b: "Parfums de Marly", items: ["056-Style Pegasus"] },
+            { b: "Ralph Lauren", items: ["057-Style Polo Bleu Gold Blend"] },
+            { b: "Valentino", items: ["058-Style Valentino Uomo", "059-Style Patchouli"] },
+            { b: "Versage", items: ["060-Style Eros Homme"] },
+            { b: "Cartier", items: ["061-Style Declaration"] },
+            { b: "Victor et Rolf", items: ["062-Style Spice Bomb"] },
+            { b: "Yves Saint Laurent", items: ["063-Style L'Homme", "064-Style La nuit de l'Homme", "065-Style Y", "066-Style Y EDP"] },
+            { b: "Zadig et Voltaire", items: ["067-Style This is him"] },
+            { b: "Calvin Klein", items: ["072-Style C.K One", "073-Style C.K One Gold"] }
+        ];
+
+        const rawDataWomen = [
+            { b: "Dolce & Gabbana", items: ["150-Style L'imperatrice 3", "151-Style Light Blue Femme", "152-Style The one Femme", "153-Style Devotion"] },
+            { b: "Elie Saab", items: ["154-Style Girl of Now", "155-Style Le Parfum"] },
+            { b: "Escada", items: ["156-Style Cherry In the air", "157-Style Collection", "158-Style Taj Sunset"] },
+            { b: "Giorgio Armani", items: ["159-Style My Way", "160-Style Si", "161-Style Si Passion"] },
+            { b: "Givenchy", items: ["164-Style Irresistible", "165-Style L'interdit 2018", "166-Style L'interdit Rouge"] },
+            { b: "Gucci by Gucci", items: ["167-Style Gucci Bloom", "168-Style Gucci Flora", "169-Style Gucci Guilty for women"] },
+            { b: "Guerlain", items: ["170-Style La Peti Robe Noire", "171-Style Mon Guerlain"] },
+            { b: "Hermès", items: ["172-Style Twilly"] },
+            { b: "Jean Paul Gaultier", items: ["173-Style Scandal", "174-Style La Belle"] },
+            { b: "Avon", items: ["175-Style Incandessence", "176-Style Today", "177-Style Tomorrow"] },
+            { b: "Britney spears", items: ["178-Style Fantasy", "179-Style Midnight Fantasy"] },
+            { b: "Burberry", items: ["180-Style Burberry Her"] },
+            { b: "Calvin Klein", items: ["182-Style Euphoria"] },
+            { b: "Carolina Herrera", items: ["183-Style Good Girl"] },
+            { b: "Cartier", items: ["184-Style La Panthère"] },
+            { b: "Chanel", items: ["185-Style Chance", "186-Style Coco Mademoiselle"] },
+            { b: "Christian Dior", items: ["187-Style Hypnotic Poison", "188-Style J'adore", "189-Style Miss Dior Chérie"] },
+            { b: "Lancôme", items: ["190-Style Idole", "191-Style Trésor Midnight Rose", "192-Style La nuit trésor", "193-Style La vie est belle"] },
+            { b: "Marc Jacobs", items: ["197-Style Décadence"] },
+            { b: "Narciso Rodriguez", items: ["198-Style Narciso Rodriguez For Her"] },
+            { b: "Nina Ricci", items: ["199-Style Nina", "200-Style L'Extase"] },
+            { b: "Oriflame", items: ["201-Style Amber Elixir", "202-Style Enigma", "203-Style Giordani Gold"] },
+            { b: "Paco Rabanne", items: ["204-Style Lady Million", "205-Style Olympea"] },
+            { b: "Parfums de Marly", items: ["206-Style Delina"] },
+            { b: "Thierry Mugler", items: ["207-Style Alien Femme"] },
+            { b: "Versage", items: ["208-Style Crystal Noir", "209-Style Eros Femme"] },
+            { b: "Victoria's Secret", items: ["210-Style Coconut Passion", "211-Style Very sexy Now 2017"] },
+            { b: "Yves Rocher", items: ["212-Style Comme une Evidence", "213-Style So Elixir"] },
+            { b: "Yves Saint Laurent", items: ["214-Style Black Opium", "215-Style Cinéma", "216-Style Libre", "217-Style Manifesto", "218-Style Mon Paris"] },
+            { b: "Zadig et Voltaire", items: ["219-Style This is her"] }
+        ];
+
+        const rawDataOriental = [
+            { b: "Francis Kurkdjian", items: ["068-Style Baccarat Bouge 540", "220-Style Baccarat Rouge"] },
+            { b: "Gissah", items: ["069-Style Hudson Valley", "070-Style Imperial Valley", "162-Style Ellora", "163-Style Sora"] },
+            { b: "Oud Arabian", items: ["071-Style Madawi Gold Edition"] },
+            { b: "Lancôme", items: ["074-Style Oud Bouquet"] },
+            { b: "Lattafa Perfumes", items: ["075-Style Ana Abiyedh", "194-Style Yara", "195-Style Khamrah", "196-Style Ameerat Al Arab"] },
+            { b: "Mancera", items: ["076-Style Red Tabacco"] },
+            { b: "Montale", items: ["077-Style Arabians Tonka"] },
+            { b: "Parfums de Marly", items: ["078-Style Layton"] },
+            { b: "Tom Ford", items: ["079-Style Black Orchid"] },
+            { b: "Xerjoff", items: ["080-Style Erba Pura", "081-Style Fleur d'Oranger/Zahr"] },
+            { b: "Oud et Musck", items: ["082-Style Poussière d'or", "083-Style Raghba", "084-Style Oud El Shams"] },
+            { b: "Louis Vuitton", items: ["085-Style Matière Noire", "086-Style Omber Nomade", "087-Style Imagination", "088-Style Narciso poudrée"] },
+            { b: "Ajmal", items: ["181-Style Wisal"] },
+            { b: "Oud & Orientaux", items: ["089-Style سحر الكلمات", "090-Style عود شيخة", "091-Style مسك الأبيض", "092-Style مسك الأسود", "093-Style عود أبيض", "094-Style رغبة", "095-Style مذهلة", "096-Style العود", "097-Style عود خصوصي", "098-Style ورد اسطنبولي", "099-Style عطر الزهر", "221-Style وشوشة", "224-Style مسك الأبيض 2", "225-Style مسك الأسود 2", "226-Style مسك الطهارة", "227-Style مسك الفانيلا", "233-Style ورد اسطنبولي 2", "234-Style عطر الزهر 2", "235-Style عطر الخوخ", "236-Style عطر المانجا", "237-Style عطر الشوكولا", "238-Style عطر الفواكه", "239-Style عطر التوت", "240-Style عطر الرمان", "241-Style عطر الطهارة", "242-Style Lovly"] }
+        ];
+
+        // Diverse Images arrays for richness
+        const imagesMen = [
+            'https://images.unsplash.com/photo-1614703530089-72c676bb915b?auto=format&fit=crop&q=80&w=400',
+            'https://images.unsplash.com/photo-1594035910387-fea47794261f?auto=format&fit=crop&q=80&w=400',
+            'https://images.unsplash.com/photo-1585386959984-a4155224a1ad?auto=format&fit=crop&q=80&w=400'
+        ];
+        const imagesWomen = [
+            'https://images.unsplash.com/photo-1595425964070-5b1287c8005d?auto=format&fit=crop&q=80&w=400',
+            'https://images.unsplash.com/photo-1588405748880-12d1d2a59f75?auto=format&fit=crop&q=80&w=400',
+            'https://images.unsplash.com/photo-1541643600914-78b084683601?auto=format&fit=crop&q=80&w=400'
+        ];
+        const imagesOriental = [
+            'https://images.unsplash.com/photo-1615397347318-620251781297?auto=format&fit=crop&q=80&w=400',
+            'https://images.unsplash.com/photo-1584433144859-1f4868f7b593?auto=format&fit=crop&q=80&w=400',
+            'https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?auto=format&fit=crop&q=80&w=400'
+        ];
+
+        let products = [];
+        let bestSellers = [];
+
+        const mapData = (dataArray, category, imgArray) => {
+            let imgIndex = 0;
+            dataArray.forEach(group => {
+                group.items.forEach((item, index) => {
+                    const split = item.split('-');
+                    const ref = split[0];
+                    const name = split.slice(1).join('-').replace('Style ', '');
+
+                    // Assign random best sellers (about 15% chance)
+                    const isBestseller = Math.random() > 0.85;
+
+                    products.push({
+                        id: ref,
+                        reference: ref,
+                        name: name,
+                        brand: group.b,
+                        category: category,
+                        price: 150,
+                        stock: Math.floor(Math.random() * 20) + 1,
+                        image: imgArray[imgIndex % imgArray.length],
+                        isBestseller: isBestseller
+                    });
+                    imgIndex++;
+                });
+            });
+        };
+
+        mapData(rawDataMen, 'Homme', imagesMen);
+        mapData(rawDataWomen, 'Femme', imagesWomen);
+        mapData(rawDataOriental, 'Oriental', imagesOriental);
+
+        // Populate Top Ventes strictly with items marked as bestseller
+        bestSellers = products.filter(p => p.isBestseller).slice(0, 8); // take top 8 max
+
+        /* ================= STATE & APP LOGIC ================= */
+        let cart = [];
+        let currentCategory = 'Tous';
+        let searchQuery = '';
+        let adminPhone = '212700762849'; // Default from image 2
+        let isAdmin = false;
+
+        function init() {
+            renderStore();
+            updateAdminStats();
+            document.getElementById('admin-phone').value = adminPhone;
+
+            // Set footer phone to match
+            const phoneFormatted = adminPhone.replace(/(\d{3})(\d{3})(\d{2})(\d{2})/, "+$1 $2 $3 $4");
+            document.getElementById('footer-phone').innerText = phoneFormatted;
+
+            // Trigger Demo Tour if first visit
+            if(localStorage.getItem('jamali_tour_done') !== 'true') {
+                setTimeout(startTour, 1000);
+            }
+        }
+
+        function switchView(viewId) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.getElementById(`view-${viewId}`).classList.add('active');
+            if(viewId === 'cart') renderCart();
+        }
+
+        function toggleDarkMode() {
+            const html = document.documentElement;
+            html.classList.toggle('dark');
+            const icon = document.getElementById('theme-icon');
+            if(html.classList.contains('dark')) {
+                icon.classList.replace('ph-moon', 'ph-sun');
+            } else {
+                icon.classList.replace('ph-sun', 'ph-moon');
+            }
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-message').innerText = message;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 3000);
+        }
+
+        function setCategory(cat) {
+            currentCategory = cat;
+            document.getElementById('search-input').value = '';
+            searchQuery = '';
+
+            // Update Tabs UI
+            document.querySelectorAll('.cat-tab').forEach(el => {
+                el.className = 'cat-tab px-4 py-2 text-sm font-bold rounded-lg text-neutral-500 hover:text-black dark:hover:text-white whitespace-nowrap transition';
+            });
+            document.getElementById(`tab-${cat}`).className = 'cat-tab px-4 py-2 text-sm font-bold rounded-lg bg-amber-600 text-black shadow whitespace-nowrap transition';
+
+            renderStore();
+        }
+
+        function handleSearch() {
+            searchQuery = document.getElementById('search-input').value.toLowerCase();
+            renderStore();
+        }
+
+        function getCategoryStyle(cat) {
+            if (cat === 'Homme') return { bg: 'bg-blue-600', text: 'Homme / رجالي' };
+            if (cat === 'Femme') return { bg: 'bg-rose-500', text: 'Femme / نسائي' };
+            if (cat === 'Oriental') return { bg: 'bg-amber-600', text: 'Oriental / شرقي' };
+            return { bg: 'bg-neutral-600', text: cat };
+        }
+
+        function generateProductCardHTML(p) {
+            const catStyle = getCategoryStyle(p.category);
+            const isRTL = /[\u0600-\u06FF]/.test(p.name);
+
+            return `
+                <div class="bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border border-neutral-100 dark:border-neutral-800 overflow-hidden flex flex-col hover:shadow-2xl dark:hover:shadow-amber-900/20 transition-all duration-300 group">
+                    <div class="relative h-56 overflow-hidden bg-neutral-100 dark:bg-neutral-800">
+                        <img src="${p.image}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 opacity-90 group-hover:opacity-100" loading="lazy">
+
+                        <!-- Badges -->
+                        <div class="absolute top-3 left-3 flex flex-col gap-2">
+                            <span class="${catStyle.bg} text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow-md">
+                                ${catStyle.text}
+                            </span>
+                            ${p.isBestseller ? `<span class="bg-black text-amber-500 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow-md border border-amber-500/30 flex items-center w-max"><i class="ph-fill ph-star mr-1"></i> Top Vente</span>` : ''}
+                        </div>
+
+                        <!-- Add to Cart Overlay -->
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-4 z-10">
+                            <button onclick="addToCart('${p.id}')" class="bg-amber-500 text-black w-12 h-12 rounded-full flex items-center justify-center hover:bg-amber-400 hover:scale-110 transition shadow-lg shadow-amber-500/50">
+                                <i class="ph ph-shopping-cart-simple text-2xl"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="p-5 flex flex-col flex-1 relative z-20">
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="text-xs text-neutral-400 font-mono font-bold tracking-wider">#${p.reference}</span>
+                            <span class="font-bold text-xl text-black dark:text-white">${p.price} <span class="text-xs text-neutral-500 font-normal">MAD</span></span>
+                        </div>
+                        <h4 class="font-serif text-lg leading-tight mb-2 text-black dark:text-white" ${isRTL ? 'dir="rtl"' : ''}>${p.name}</h4>
+                        <p class="text-[11px] text-neutral-500 uppercase tracking-widest mt-auto font-bold">${p.brand}</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderStore() {
+            const grid = document.getElementById('product-grid');
+            const topVentesSection = document.getElementById('top-ventes');
+            const topVentesGrid = document.getElementById('top-ventes-grid');
+            const noResults = document.getElementById('no-results');
+
+            // Filter logic
+            let filtered = products;
+
+            if (currentCategory !== 'Tous') {
+                filtered = filtered.filter(p => p.category === currentCategory);
+            }
+
+            if (searchQuery) {
+                filtered = filtered.filter(p =>
+                    p.name.toLowerCase().includes(searchQuery) ||
+                    p.brand.toLowerCase().includes(searchQuery) ||
+                    p.reference.includes(searchQuery)
+                );
+            }
+
+            // Top Ventes visibility: Only show if on 'Tous' and NO search is active
+            if (currentCategory === 'Tous' && !searchQuery) {
+                topVentesSection.style.display = 'block';
+                topVentesGrid.innerHTML = bestSellers.map(p => generateProductCardHTML(p)).join('');
+                document.getElementById('catalog-title-container').style.display = 'flex';
+            } else {
+                topVentesSection.style.display = 'none';
+                document.getElementById('catalog-title-container').style.display = 'none';
+            }
+
+            // Render Catalog
+            if (filtered.length === 0) {
+                grid.innerHTML = '';
+                noResults.classList.remove('hidden');
+            } else {
+                noResults.classList.add('hidden');
+                grid.innerHTML = filtered.map(p => generateProductCardHTML(p)).join('');
+            }
+        }
+
+        // Cart Functions
+        function addToCart(id) {
+            const product = products.find(p => p.id === id);
+            const existing = cart.find(item => item.id === id);
+            if (existing) {
+                existing.quantity += 1;
+            } else {
+                cart.push({ ...product, quantity: 1 });
+            }
+            updateCartBadge();
+            showToast(`Ajouté : ${product.name}`);
+        }
+
+        function removeFromCart(id) {
+            cart = cart.filter(item => item.id !== id);
+            updateCartBadge();
+            renderCart();
+        }
+
+        function updateQty(id, delta) {
+            const item = cart.find(i => i.id === id);
+            if (item) {
+                item.quantity += delta;
+                if (item.quantity <= 0) removeFromCart(id);
+                else renderCart();
+            }
+            updateCartBadge();
+        }
+
+        function updateCartBadge() {
+            const badge = document.getElementById('cart-badge');
+            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+            if (totalItems > 0) {
+                badge.innerText = totalItems;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+
+        function renderCart() {
+            const container = document.getElementById('cart-container');
+            if (cart.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-24 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl shadow-sm">
+                        <i class="ph ph-shopping-bag text-7xl text-neutral-300 dark:text-neutral-700 mb-6"></i>
+                        <p class="text-xl text-neutral-500 mb-2">Votre panier est vide.</p>
+                        <p class="text-neutral-400 font-arabic mb-8" dir="rtl">سلة التسوق فارغة.</p>
+                        <button onclick="switchView('store')" class="bg-amber-600 text-black px-8 py-3 rounded-full font-bold hover:bg-amber-500 transition shadow-lg">Découvrir le catalogue</button>
+                    </div>`;
+                return;
+            }
+
+            const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+            let html = `<div class="bg-white dark:bg-neutral-900 shadow-xl border border-neutral-100 dark:border-neutral-800 rounded-2xl overflow-hidden">
+                <ul class="divide-y divide-neutral-200 dark:divide-neutral-800 p-6 sm:p-8">`;
+
+            cart.forEach(item => {
+                const catStyle = getCategoryStyle(item.category);
+                html += `
+                    <li class="py-6 flex flex-col sm:flex-row items-center">
+                        <img src="${item.image}" class="w-20 h-20 object-cover rounded-xl mb-4 sm:mb-0 sm:mr-6 border border-neutral-200 dark:border-neutral-800">
+                        <div class="flex-1 text-center sm:text-left">
+                            <h4 class="text-lg font-bold font-serif text-black dark:text-white" ${/[\u0600-\u06FF]/.test(item.name) ? 'dir="rtl"' : ''}>${item.name}</h4>
+                            <p class="text-xs text-neutral-500 font-mono mt-1">Ref: ${item.reference} | <span class="uppercase">${item.brand}</span></p>
+                            <span class="inline-block mt-2 ${catStyle.bg} text-white text-[9px] px-2 py-0.5 rounded-full uppercase tracking-wider">${item.category}</span>
+                        </div>
+                        <div class="flex items-center mt-6 sm:mt-0 space-x-6">
+                            <div class="flex items-center border border-neutral-300 dark:border-neutral-700 rounded-lg overflow-hidden">
+                                <button onclick="updateQty('${item.id}', -1)" class="px-4 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition">-</button>
+                                <span class="px-4 font-bold border-x border-neutral-300 dark:border-neutral-700">${item.quantity}</span>
+                                <button onclick="updateQty('${item.id}', 1)" class="px-4 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition">+</button>
+                            </div>
+                            <div class="w-24 text-right">
+                                <div class="font-bold text-lg text-black dark:text-white">${item.price * item.quantity}</div>
+                                <div class="text-xs text-neutral-500">MAD</div>
+                            </div>
+                            <button onclick="removeFromCart('${item.id}')" class="text-neutral-400 hover:text-red-500 bg-neutral-100 dark:bg-neutral-800 p-2 rounded-full transition"><i class="ph ph-trash text-xl"></i></button>
+                        </div>
+                    </li>`;
+            });
+
+            html += `</ul>
+                <div class="bg-neutral-50 dark:bg-neutral-950 p-6 sm:p-8 border-t border-neutral-200 dark:border-neutral-800 flex flex-col sm:flex-row justify-between items-center">
+                    <div class="mb-6 sm:mb-0 text-center sm:text-left">
+                        <p class="text-neutral-500 text-sm uppercase tracking-wider">Total de la commande</p>
+                        <p class="text-4xl font-bold mt-1 text-black dark:text-white">${total} <span class="text-xl text-neutral-500 font-normal">MAD</span></p>
+                    </div>
+                    <button onclick="checkoutWhatsApp()" class="w-full sm:w-auto flex items-center justify-center bg-[#25D366] hover:bg-[#128C7E] text-white px-8 py-4 rounded-full font-bold uppercase tracking-wider transition shadow-lg shadow-green-500/20">
+                        <i class="ph-fill ph-whatsapp-logo text-2xl mr-3"></i> Commander (WhatsApp)
+                    </button>
+                </div>
+            </div>`;
+            container.innerHTML = html;
+        }
+
+        // WhatsApp Checkout
+        async function checkoutWhatsApp() {
+            if(cart.length === 0) return;
+            const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+            // Nouveau: Envoi asynchrone de la commande au Serveur Flask (MongoDB, Twilio, Email)
+            try {
+                fetch('/api/order', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ cart: cart, total: total })
+                }).then(res => res.json()).then(data => {
+                    console.log("Commande traitée par le backend :", data);
+                }).catch(err => console.warn("Backend hors ligne : la commande locale est conservée."));
+            } catch (error) {
+                console.error(error);
+            }
+
+            // Ouverture classique de WhatsApp côté client (Fallback visuel)
+            let msg = "Bonjour Jamali Parfum ! 👋\nJe souhaite passer la commande suivante (أريد طلب المنتجات التالية):\n\n";
+            cart.forEach(i => {
+                msg += `▪️ ${i.quantity}x *${i.name}* (Réf: ${i.reference})\n`;
+            });
+            msg += `\n*TOTAL / المجموع : ${total} MAD*\n\nMerci de me contacter pour la livraison.`;
+            window.open(`https://wa.me/${adminPhone}?text=${encodeURIComponent(msg)}`, '_blank');
+        }
+
+        // Admin Functions
+        function attemptAdminLogin() {
+            if (isAdmin) {
+                switchView('admin');
+                return;
+            }
+            const pwd = prompt("Accès CMS (Mot de passe : admin)");
+            if (pwd === 'admin') {
+                isAdmin = true;
+                switchView('admin');
+                renderAdminTable();
+                showToast("Connexion réussie");
+            } else if (pwd !== null) {
+                showToast("Mot de passe incorrect");
+            }
+        }
+
+        function logoutAdmin() {
+            isAdmin = false;
+            switchView('store');
+            showToast("Déconnecté");
+        }
+
+        function savePhone() {
+            adminPhone = document.getElementById('admin-phone').value;
+            const phoneFormatted = adminPhone.replace(/(\d{3})(\d{3})(\d{2})(\d{2})/, "+$1 $2 $3 $4");
+            document.getElementById('footer-phone').innerText = phoneFormatted;
+            showToast("Numéro WhatsApp mis à jour");
+        }
+
+        function updateAdminStats() {
+            document.getElementById('stat-total-products').innerText = products.length;
+        }
+
+        function renderAdminTable() {
+            const tbody = document.getElementById('admin-table-body');
+            tbody.innerHTML = products.map(p => {
+                const catStyle = getCategoryStyle(p.category);
+                return `
+                <tr class="hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition">
+                    <td class="p-4 font-mono text-xs font-bold text-neutral-500">${p.reference}</td>
+                    <td class="p-4 text-[10px] font-bold uppercase tracking-widest text-neutral-400">${p.brand}</td>
+                    <td class="p-4 font-bold text-black dark:text-white" ${/[\u0600-\u06FF]/.test(p.name) ? 'dir="rtl"' : ''}>
+                        ${p.name}
+                        ${p.isBestseller ? '<i class="ph-fill ph-star text-amber-500 ml-1" title="Top Vente"></i>' : ''}
+                    </td>
+                    <td class="p-4">
+                        <span class="${catStyle.bg} text-white px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider">${p.category}</span>
+                    </td>
+                    <td class="p-4 font-bold">${p.price} MAD</td>
+                </tr>
+            `}).join('');
+        }
+
+        /* ================= TOUR / DEMO LOGIC ================= */
+        let currentTourStep = 0;
+        const tourData = [
+            {
+                view: 'store',
+                icon: 'ph-hand-waving',
+                title: 'Bienvenue / مرحباً',
+                text: 'Découvrez notre nouvelle plateforme e-commerce Jamali Parfum. Une expérience luxueuse et fluide pour commander vos parfums favoris.<br><br><span class="font-arabic text-sm" dir="rtl">اكتشف منصتنا الجديدة لعطور جمالي. تجربة فاخرة وسلسة لطلب عطورك المفضلة.</span>'
+            },
+            {
+                view: 'store',
+                icon: 'ph-magnifying-glass',
+                title: 'Recherche & Filtres / البحث',
+                text: 'Utilisez la barre de recherche ou cliquez sur les catégories (Homme, Femme, Oriental) pour trouver votre parfum idéal.<br><br><span class="font-arabic text-sm" dir="rtl">استخدم شريط البحث أو الفئات للعثور على عطرك المثالي.</span>'
+            },
+            {
+                view: 'cart',
+                icon: 'ph-shopping-cart',
+                title: 'Panier Facile / سلة التسوق',
+                text: 'Ajoutez des articles et validez votre commande directement via <b>WhatsApp</b> en un seul clic !<br><br><span class="font-arabic text-sm" dir="rtl">أضف المنتجات وأرسل طلبك مباشرة عبر الواتساب بضغطة زر واحدة!</span>'
+            },
+            {
+                view: 'admin',
+                icon: 'ph-gear-six',
+                title: 'Espace Admin / الإدارة',
+                text: 'Un CMS caché permet de gérer tout votre catalogue et le numéro de réception des commandes.<br><span class="text-amber-500 text-xs mt-2 block">(Mot de passe démo : <b>admin</b>)</span>'
+            }
+        ];
+
+        function startTour() {
+            currentTourStep = 0;
+            document.getElementById('tour-overlay').classList.remove('hidden');
+            document.getElementById('tour-overlay').classList.add('flex');
+            renderTourStep();
+        }
+
+        function renderTourStep() {
+            const step = tourData[currentTourStep];
+
+            // Switch background view automatically
+            if(step.view === 'admin') { isAdmin = true; } // Bypass password for tour
+            switchView(step.view);
+            if(step.view === 'store') window.scrollTo(0, 400);
+
+            // Build Dots
+            const dotsHtml = tourData.map((_, i) => `
+                <div class="w-2 h-2 rounded-full ${i === currentTourStep ? 'bg-amber-500 w-6' : 'bg-neutral-300 dark:bg-neutral-700'} transition-all duration-300"></div>
+            `).join('');
+            document.getElementById('tour-dots').innerHTML = dotsHtml;
+
+            // Build Content
+            const contentHtml = `
+                <div class="w-16 h-16 bg-amber-500/20 text-amber-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <i class="ph-fill ${step.icon} text-3xl"></i>
+                </div>
+                <h3 class="text-2xl font-serif font-bold text-black dark:text-white mb-4">${step.title}</h3>
+                <p class="text-neutral-600 dark:text-neutral-300 mb-8 leading-relaxed">${step.text}</p>
+                <div class="flex space-x-4">
+                    ${currentTourStep > 0 ? `<button onclick="prevTourStep()" class="flex-1 py-3 bg-neutral-100 dark:bg-neutral-800 text-black dark:text-white font-bold rounded-xl hover:bg-neutral-200 dark:hover:bg-neutral-700 transition">Précédent</button>` : ''}
+                    <button onclick="${currentTourStep === tourData.length - 1 ? 'endTour()' : 'nextTourStep()'}" class="flex-1 py-3 bg-amber-600 text-white dark:text-black font-bold rounded-xl hover:bg-amber-500 transition shadow-lg shadow-amber-600/30">
+                        ${currentTourStep === tourData.length - 1 ? 'Terminer' : 'Suivant'}
+                    </button>
+                </div>
+            `;
+            document.getElementById('tour-content').innerHTML = contentHtml;
+        }
+
+        function nextTourStep() {
+            if(currentTourStep < tourData.length - 1) {
+                currentTourStep++;
+                renderTourStep();
+            }
+        }
+
+        function prevTourStep() {
+            if(currentTourStep > 0) {
+                currentTourStep--;
+                renderTourStep();
+            }
+        }
+
+        function endTour() {
+            document.getElementById('tour-overlay').classList.add('hidden');
+            document.getElementById('tour-overlay').classList.remove('flex');
+            localStorage.setItem('jamali_tour_done', 'true');
+            isAdmin = false; // Reset admin bypass
+            switchView('store');
+            window.scrollTo(0,0);
+        }
+
+        /* ================= CHATBOT LOGIC ================= */
+        let chatOpen = false;
+
+        function toggleChat() {
+            const chatWin = document.getElementById('chat-window');
+            chatOpen = !chatOpen;
+            if(chatOpen) {
+                chatWin.classList.remove('hidden');
+                chatWin.classList.add('show');
+                document.getElementById('chat-input').focus();
+            } else {
+                chatWin.classList.remove('show');
+                chatWin.classList.add('hidden');
+            }
+        }
+
+        function handleChatKeyPress(e) {
+            if(e.key === 'Enter') sendChatMessage();
+        }
+
+        function appendChatMessage(text, isUser = false) {
+            const msgContainer = document.getElementById('chat-messages');
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `flex ${isUser ? 'justify-end' : 'items-start'} mt-2`;
+
+            // Format markdown text from Gemini (Basic bold parsing)
+            const formattedText = text.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>').replace(/\n/g, '<br>');
+
+            if(isUser) {
+                msgDiv.innerHTML = `<div class="bg-amber-600 text-white px-4 py-2 rounded-2xl rounded-tr-none text-sm max-w-[85%] shadow-sm">${formattedText}</div>`;
+            } else {
+                msgDiv.innerHTML = `<div class="bg-neutral-200 dark:bg-neutral-800 text-neutral-900 dark:text-white px-4 py-2 rounded-2xl rounded-tl-none text-sm max-w-[85%] shadow-sm">${formattedText}</div>`;
+            }
+
+            msgContainer.appendChild(msgDiv);
+            msgContainer.scrollTop = msgContainer.scrollHeight;
+        }
+
+        async function sendChatMessage() {
+            const input = document.getElementById('chat-input');
+            const userText = input.value.trim();
+            if(!userText) return;
+
+            // Afficher le message de l'utilisateur
+            appendChatMessage(userText, true);
+            input.value = '';
+
+            // Ajouter l'indicateur de chargement
+            const msgContainer = document.getElementById('chat-messages');
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = "flex items-start mt-2 loading-bubble";
+            loadingDiv.innerHTML = `<div class="bg-neutral-200 dark:bg-neutral-800 text-neutral-500 px-4 py-2 rounded-2xl rounded-tl-none text-sm animate-pulse">En train d'écrire...</div>`;
+            msgContainer.appendChild(loadingDiv);
+            msgContainer.scrollTop = msgContainer.scrollHeight;
+
+            try {
+                // Appel API vers le backend Flask (qui interroge Gemini)
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: userText })
+                });
+
+                // Supprimer l'indicateur de chargement
+                msgContainer.removeChild(loadingDiv);
+
+                if (response.ok) {
+                    const data = await response.json();
+                    appendChatMessage(data.reply, false);
+                } else {
+                    throw new Error("Erreur serveur");
+                }
+            } catch (error) {
+                // En cas de panne du backend local, comportement de secours statique
+                if (msgContainer.contains(loadingDiv)) msgContainer.removeChild(loadingDiv);
+
+                setTimeout(() => {
+                    const lowerText = userText.toLowerCase();
+                    let botReply = "Je suis désolé, mon serveur central n'est pas accessible actuellement. Veuillez nous contacter sur WhatsApp au <b>" + document.getElementById('footer-phone').innerText + "</b>.";
+
+                    if(lowerText.includes('bonjour') || lowerText.includes('salam')) {
+                        botReply = "Bonjour ! Mon cerveau (API) est déconnecté, mais nos parfums restent disponibles ! Cherchez-vous un parfum pour Homme, Femme ou Oriental ?";
+                    }
+                    appendChatMessage(botReply, false);
+                }, 500);
+            }
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
