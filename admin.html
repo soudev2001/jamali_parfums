@@ -58,6 +58,9 @@
         Connexion
       </button>
     </form>
+    <a href="/" class="mt-4 w-full flex items-center justify-center text-neutral-500 hover:text-amber-500 text-sm font-bold transition py-2">
+      <i class="ph ph-arrow-left mr-2"></i> Retour à la boutique
+    </a>
   </div>
 </div>
 
@@ -114,14 +117,18 @@
   </aside>
 
   <!-- ── Mobile top bar ── -->
-  <div class="md:hidden fixed top-0 left-0 right-0 bg-neutral-900 border-b border-neutral-800 z-40 flex items-center justify-between px-4 h-14">
+  <div class="md:hidden fixed top-0 left-0 right-0 bg-neutral-900 border-b border-neutral-800 z-40 flex items-center justify-between px-3 h-14">
+    <a href="/" class="flex items-center text-neutral-400 hover:text-amber-500 transition">
+      <i class="ph ph-arrow-left text-lg mr-1"></i>
+      <span class="text-xs font-bold">Boutique</span>
+    </a>
     <span class="font-bold text-amber-500 text-sm">Jamali Admin</span>
-    <div class="flex space-x-1">
-      <button onclick="switchTab('dashboard')" class="p-2 text-neutral-400 hover:text-amber-500"><i class="ph-fill ph-squares-four text-xl"></i></button>
-      <button onclick="switchTab('products')"  class="p-2 text-neutral-400 hover:text-amber-500"><i class="ph-fill ph-package text-xl"></i></button>
-      <button onclick="switchTab('orders')"    class="p-2 text-neutral-400 hover:text-amber-500"><i class="ph-fill ph-receipt text-xl"></i></button>
-      <button onclick="switchTab('settings')"  class="p-2 text-neutral-400 hover:text-amber-500"><i class="ph-fill ph-gear-six text-xl"></i></button>
-      <button onclick="doLogout()"             class="p-2 text-red-400"><i class="ph ph-sign-out text-xl"></i></button>
+    <div class="flex space-x-0.5">
+      <button onclick="switchTab('dashboard')" data-tab="dashboard" class="mob-tab p-2 text-amber-500"><i class="ph-fill ph-squares-four text-lg"></i></button>
+      <button onclick="switchTab('products')"  data-tab="products"  class="mob-tab p-2 text-neutral-400"><i class="ph-fill ph-package text-lg"></i></button>
+      <button onclick="switchTab('orders')"    data-tab="orders"    class="mob-tab p-2 text-neutral-400"><i class="ph-fill ph-receipt text-lg"></i></button>
+      <button onclick="switchTab('settings')"  data-tab="settings"  class="mob-tab p-2 text-neutral-400"><i class="ph-fill ph-gear-six text-lg"></i></button>
+      <button onclick="doLogout()"             class="p-2 text-red-400"><i class="ph ph-sign-out text-lg"></i></button>
     </div>
   </div>
 
@@ -498,9 +505,16 @@ function applyDemoMode() {
 function switchTab(name) {
   document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
   document.getElementById('tab-' + name).classList.add('active');
+  // Desktop sidebar
   document.querySelectorAll('.nav-btn').forEach(btn => {
     const isActive = btn.dataset.tab === name;
     btn.classList.toggle('bg-amber-600/10', isActive);
+    btn.classList.toggle('text-amber-500', isActive);
+    btn.classList.toggle('text-neutral-400', !isActive);
+  });
+  // Mobile top bar
+  document.querySelectorAll('.mob-tab').forEach(btn => {
+    const isActive = btn.dataset.tab === name;
     btn.classList.toggle('text-amber-500', isActive);
     btn.classList.toggle('text-neutral-400', !isActive);
   });

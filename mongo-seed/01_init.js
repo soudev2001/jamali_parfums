@@ -124,4 +124,3 @@ db.createUser({
 });
 
 print('User jamali_admin cree avec acces readWrite sur jamali_db.');
-
