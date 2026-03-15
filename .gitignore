@@ -1,0 +1,14 @@
+# Secrets — ne jamais commiter
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+
+# Données locales
+*.log
+*.db
