@@ -4,11 +4,23 @@
 # Usage :
 #   bash deploy.sh                  → Stack complète (port 8080)
 #   bash deploy.sh --integrate-sarfx → Intègre sarfx-nginx existant
+#   bash deploy.sh --no-cache       → Force rebuild complet
 # =============================================================
-set -e
+set -euo pipefail
+
+# ─── BuildKit : builds parallèles et couche de cache ──────────
+export DOCKER_BUILDKIT=1
+export COMPOSE_DOCKER_CLI_BUILD=1
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
+
+NO_CACHE_FLAG=""
+INTEGRATE_SARFX=false
+for arg in "$@"; do
+  [[ "$arg" == "--no-cache" ]]        && NO_CACHE_FLAG="--no-cache"
+  [[ "$arg" == "--integrate-sarfx" ]] && INTEGRATE_SARFX=true
+done
 
 GREEN='\033[0;32m'; YELLOW='\033[1;33m'; RED='\033[0;31m'; NC='\033[0m'
 info()    { echo -e "${YELLOW}▶  $*${NC}"; }
@@ -37,14 +49,30 @@ if [ ! -f .env ]; then
 fi
 
 # ─── Build & démarrage ────────────────────────────────────────
-info "Construction de l'image Flask..."
-docker compose build --no-cache jamali-flask
+info "Récupération des images de base Docker..."
+docker compose pull --ignore-pull-failures 2>/dev/null || true
+
+info "Construction de l'image Flask (BuildKit activé)${NO_CACHE_FLAG:+ — sans cache}..."
+# shellcheck disable=SC2086
+docker compose build $NO_CACHE_FLAG jamali-flask
 
 info "Démarrage des services Jamali (MongoDB, Flask, Nginx)..."
 docker compose up -d
 
-info "Attente de la disponibilité des services (30s)..."
-sleep 30
+info "Attente de la disponibilité des services..."
+MAX_WAIT=90
+ELAPSED=0
+until curl -sf http://localhost:8080/ > /dev/null 2>&1 || [ "$ELAPSED" -ge "$MAX_WAIT" ]; do
+  sleep 3
+  ELAPSED=$((ELAPSED + 3))
+  echo -n "."
+done
+echo ""
+if [ "$ELAPSED" -ge "$MAX_WAIT" ]; then
+  info "Timeout — vérifiez les logs : docker compose logs jamali-flask"
+else
+  success "Services disponibles en ${ELAPSED}s."
+fi
 
 # ─── Santé des services ───────────────────────────────────────
 echo ""
@@ -53,14 +81,14 @@ docker compose ps
 echo ""
 
 # Test Flask
-if curl -sf http://localhost:8080/api/ > /dev/null 2>&1 || curl -sf http://localhost:5000/ > /dev/null 2>&1; then
-  success "Flask répond correctement."
+if curl -sf http://localhost:8080/ > /dev/null 2>&1; then
+  success "Jamali répond sur le port 8080."
 else
   info "Flask démarre encore, vérifiez les logs : docker compose logs jamali-flask"
 fi
 
 # ─── Intégration sarfx-nginx (optionnel) ─────────────────────
-if [[ "$1" == "--integrate-sarfx" ]]; then
+if [[ "$INTEGRATE_SARFX" == true ]]; then
   echo ""
   info "Intégration avec sarfx-nginx..."
 
@@ -122,7 +150,8 @@ echo -e "${GREEN}╔════════════════════
 echo -e "${GREEN}║              Déploiement terminé !                   ║${NC}"
 echo -e "${GREEN}╚══════════════════════════════════════════════════════╝${NC}"
 echo ""
-echo -e "  📍 Jamali Parfum (port dédié) : ${YELLOW}http://195.35.28.227:8080${NC}"
+echo -e "  📍 Boutique            : ${YELLOW}http://195.35.28.227:8080${NC}"
+echo -e "  🔐 Admin CMS           : ${YELLOW}http://195.35.28.227:8080/admin${NC}"
 echo ""
 echo -e "  Commandes utiles :"
 echo -e "    Logs Flask  : docker compose logs -f jamali-flask"
@@ -131,8 +160,10 @@ echo -e "    Logs MongoDB: docker compose logs -f jamali-mongo"
 echo -e "    Arrêter     : docker compose down"
 echo -e "    Redémarrer  : docker compose restart"
 echo ""
-if [[ "$1" != "--integrate-sarfx" ]]; then
+if [[ "$INTEGRATE_SARFX" != true ]]; then
   echo -e "  ℹ️  Pour intégrer dans sarfx-nginx (port 80) :"
   echo -e "    ${YELLOW}bash deploy.sh --integrate-sarfx${NC}"
+  echo -e "  ℹ️  Pour forcer rebuild complet :"
+  echo -e "    ${YELLOW}bash deploy.sh --no-cache${NC}"
   echo ""
 fi

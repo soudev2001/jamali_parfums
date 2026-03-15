@@ -170,9 +170,13 @@
                         <span id="cart-badge" class="absolute top-0 right-0 bg-amber-600 text-black text-[10px] font-bold rounded-full h-4 w-4 flex items-center justify-center translate-x-1 -translate-y-1 hidden">0</span>
                     </button>
 
-                    <button onclick="attemptAdminLogin()" class="p-2 rounded-full hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors text-neutral-400 hover:text-amber-500" title="Admin">
-                        <i class="ph ph-gear-six text-xl"></i>
+                    <button id="nav-fav-btn" onclick="switchView('favorites')" class="relative flex items-center p-2 rounded-full hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors" title="Favoris">
+                        <i class="ph ph-heart text-2xl"></i>
+                        <span id="fav-badge" class="absolute top-0 right-0 bg-rose-500 text-white text-[10px] font-bold rounded-full h-4 w-4 flex items-center justify-center translate-x-1 -translate-y-1 hidden">0</span>
                     </button>
+                    <a href="/admin" class="p-2 rounded-full hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors text-neutral-400 hover:text-amber-500" title="Admin CMS">
+                        <i class="ph ph-gear-six text-xl"></i>
+                    </a>
                 </div>
             </div>
         </div>
@@ -310,41 +314,26 @@
             <div id="cart-container"></div>
         </div>
 
-        <!-- ================= ADMIN VIEW ================= -->
-        <div id="view-admin" class="view-section max-w-7xl mx-auto px-4 py-12">
-            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 bg-white dark:bg-neutral-900 p-6 rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-800">
-                <div>
-                    <h2 class="text-2xl font-serif font-bold text-amber-600 flex items-center">
-                        <i class="ph-fill ph-shield-check mr-2"></i> CMS Administration
-                    </h2>
-                    <p class="text-sm text-neutral-500 mt-1">Gérez le catalogue et les paramètres WhatsApp.</p>
-                </div>
-                <div class="flex items-center space-x-4 mt-4 md:mt-0">
-                    <div class="flex items-center bg-neutral-100 dark:bg-neutral-950 px-3 py-2 rounded-lg border border-neutral-200 dark:border-neutral-800">
-                        <i class="ph ph-whatsapp text-green-500 mr-2"></i>
-                        <input type="text" id="admin-phone" onchange="savePhone()" class="bg-transparent border-none outline-none w-32 font-mono text-sm font-bold" placeholder="212600000000">
-                    </div>
-                    <button onclick="logoutAdmin()" class="bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white px-4 py-2 rounded-lg font-bold text-sm transition">
-                        Quitter
-                    </button>
+        <!-- ================= FAVORITES VIEW ================= -->
+        <div id="view-favorites" class="view-section max-w-7xl mx-auto px-4 py-12">
+            <div class="flex items-center justify-between mb-8">
+                <button onclick="switchView('store')" class="text-neutral-500 hover:text-black dark:hover:text-white flex items-center transition font-bold">
+                    <i class="ph ph-arrow-left mr-2"></i> Retour au catalogue
+                </button>
+                <div class="text-right">
+                    <h2 class="text-3xl font-serif">Favoris</h2>
+                    <h3 class="text-xl font-arabic text-rose-500" dir="rtl">المفضلة</h3>
                 </div>
             </div>
+            <div id="favorites-container"></div>
+        </div>
 
-            <div class="bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-800 shadow-sm overflow-hidden">
-                <div class="p-4 border-b border-neutral-200 dark:border-neutral-800 flex justify-between items-center bg-neutral-50 dark:bg-neutral-950">
-                    <h3 class="font-bold">Base de données Catalogue (<span id="stat-total-products">0</span> parfums)</h3>
-                </div>
-                <div class="overflow-x-auto max-h-[600px]">
-                    <table class="w-full text-left text-sm">
-                        <thead class="bg-neutral-100 dark:bg-neutral-800 text-neutral-500 sticky top-0 shadow-sm">
-                            <tr><th class="p-4">Réf</th><th class="p-4">Marque</th><th class="p-4">Parfum</th><th class="p-4">Catégorie</th><th class="p-4">Prix</th></tr>
-                        </thead>
-                        <tbody id="admin-table-body" class="divide-y divide-neutral-200 dark:divide-neutral-800">
-                            <!-- Injected -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+        <!-- ================= ADMIN REDIRECT VIEW ================= -->
+        <div id="view-admin" class="view-section max-w-2xl mx-auto px-4 py-24 text-center">
+            <i class="ph-fill ph-shield-check text-6xl text-amber-500 mb-4 block"></i>
+            <h2 class="text-2xl font-serif font-bold mb-3">Espace Admin</h2>
+            <p class="text-neutral-500 mb-6">Le CMS complet s'ouvre dans une page dédiée.</p>
+            <a href="/admin" class="inline-block bg-amber-600 text-black font-bold px-8 py-3 rounded-full hover:bg-amber-500 transition shadow-lg">Ouvrir le CMS Admin</a>
         </div>
 
     </main>
@@ -547,16 +536,71 @@
         bestSellers = products.filter(p => p.isBestseller).slice(0, 8); // take top 8 max
 
         /* ================= STATE & APP LOGIC ================= */
-        let cart = [];
+        let cart = JSON.parse(localStorage.getItem('jamali_cart') || '[]');
+        let favorites = JSON.parse(localStorage.getItem('jamali_favs') || '[]');
         let currentCategory = 'Tous';
         let searchQuery = '';
-        let adminPhone = '212700762849'; // Default from image 2
-        let isAdmin = false;
+        let adminPhone = localStorage.getItem('jamali_wa') || '212700762849';
+
+        /* ── localStorage helpers ── */
+        function saveCart()      { localStorage.setItem('jamali_cart', JSON.stringify(cart)); }
+        function saveFavorites() { localStorage.setItem('jamali_favs', JSON.stringify(favorites)); }
+        function isFavorite(id)  { return favorites.includes(id); }
+
+        function toggleFavorite(id) {
+            const product = products.find(p => p.id === id);
+            if (!product) return;
+            const idx = favorites.indexOf(id);
+            if (idx === -1) {
+                favorites.push(id);
+                showToast(`♥ Ajouté aux favoris : ${product.name}`);
+            } else {
+                favorites.splice(idx, 1);
+                showToast(`Retiré des favoris : ${product.name}`);
+            }
+            saveFavorites();
+            updateFavBadge();
+            // Refresh heart button in-place
+            const btn = document.getElementById('fav-btn-' + id);
+            if (btn) {
+                const fav = isFavorite(id);
+                btn.className = `absolute top-3 right-3 w-9 h-9 rounded-full flex items-center justify-center shadow-md transition-all ${fav ? 'bg-rose-500 text-white' : 'bg-white/80 dark:bg-black/50 text-neutral-400 hover:bg-rose-500 hover:text-white'}`;
+                btn.innerHTML = `<i class="${fav ? 'ph-fill' : 'ph'} ph-heart text-lg"></i>`;
+            }
+            if (document.getElementById('view-favorites').classList.contains('active')) renderFavorites();
+        }
+
+        function updateFavBadge() {
+            const badge = document.getElementById('fav-badge');
+            if (!badge) return;
+            if (favorites.length > 0) {
+                badge.textContent = favorites.length;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+
+        function renderFavorites() {
+            const container = document.getElementById('favorites-container');
+            const favProds  = products.filter(p => favorites.includes(p.id));
+            if (!favProds.length) {
+                container.innerHTML = `
+                    <div class="text-center py-24 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl shadow-sm">
+                        <i class="ph ph-heart text-7xl text-neutral-300 dark:text-neutral-700 mb-6"></i>
+                        <p class="text-xl text-neutral-500 mb-2">Aucun favori enregistré.</p>
+                        <p class="text-neutral-400 font-arabic mb-8" dir="rtl">لا توجد مفضلات.</p>
+                        <button onclick="switchView('store')" class="bg-rose-500 text-white px-8 py-3 rounded-full font-bold hover:bg-rose-400 transition shadow-lg">Découvrir le catalogue</button>
+                    </div>`;
+                return;
+            }
+            container.innerHTML = `<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">${favProds.map(p => generateProductCardHTML(p)).join('')}</div>`;
+        }
 
         function init() {
             renderStore();
-            updateAdminStats();
-            document.getElementById('admin-phone').value = adminPhone;
+            updateCartBadge();
+            updateFavBadge();
 
             // Set footer phone to match
             const phoneFormatted = adminPhone.replace(/(\d{3})(\d{3})(\d{2})(\d{2})/, "+$1 $2 $3 $4");
@@ -571,7 +615,9 @@
         function switchView(viewId) {
             document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
             document.getElementById(`view-${viewId}`).classList.add('active');
-            if(viewId === 'cart') renderCart();
+            window.scrollTo(0, 0);
+            if (viewId === 'cart')      renderCart();
+            if (viewId === 'favorites') renderFavorites();
         }
 
         function toggleDarkMode() {
@@ -620,24 +666,35 @@
 
         function generateProductCardHTML(p) {
             const catStyle = getCategoryStyle(p.category);
-            const isRTL = /[\u0600-\u06FF]/.test(p.name);
+            const isRTL    = /[\u0600-\u06FF]/.test(p.name);
+            const fav      = isFavorite(p.id);
+            const stockLow = p.stock > 0 && p.stock <= 3;
+            const outStock = p.stock === 0;
 
             return `
                 <div class="bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border border-neutral-100 dark:border-neutral-800 overflow-hidden flex flex-col hover:shadow-2xl dark:hover:shadow-amber-900/20 transition-all duration-300 group">
                     <div class="relative h-56 overflow-hidden bg-neutral-100 dark:bg-neutral-800">
                         <img src="${p.image}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 opacity-90 group-hover:opacity-100" loading="lazy">
 
-                        <!-- Badges -->
+                        <!-- Badge catégorie + bestseller -->
                         <div class="absolute top-3 left-3 flex flex-col gap-2">
-                            <span class="${catStyle.bg} text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow-md">
-                                ${catStyle.text}
-                            </span>
+                            <span class="${catStyle.bg} text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow-md">${catStyle.text}</span>
                             ${p.isBestseller ? `<span class="bg-black text-amber-500 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow-md border border-amber-500/30 flex items-center w-max"><i class="ph-fill ph-star mr-1"></i> Top Vente</span>` : ''}
+                            ${outStock ? `<span class="bg-red-600 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow-md">Rupture</span>` : ''}
+                            ${stockLow ? `<span class="bg-orange-500 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow-md">Stock : ${p.stock}</span>` : ''}
                         </div>
 
-                        <!-- Add to Cart Overlay -->
+                        <!-- Bouton Favoris -->
+                        <button onclick="toggleFavorite('${p.id}')" id="fav-btn-${p.id}"
+                            class="absolute top-3 right-3 w-9 h-9 rounded-full flex items-center justify-center shadow-md transition-all
+                                   ${fav ? 'bg-rose-500 text-white' : 'bg-white/80 dark:bg-black/50 text-neutral-400 hover:bg-rose-500 hover:text-white'}">
+                            <i class="${fav ? 'ph-fill' : 'ph'} ph-heart text-lg"></i>
+                        </button>
+
+                        <!-- Overlay ajout panier -->
                         <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-4 z-10">
-                            <button onclick="addToCart('${p.id}')" class="bg-amber-500 text-black w-12 h-12 rounded-full flex items-center justify-center hover:bg-amber-400 hover:scale-110 transition shadow-lg shadow-amber-500/50">
+                            <button onclick="addToCart('${p.id}')" ${outStock ? 'disabled' : ''}
+                                class="bg-amber-500 text-black w-12 h-12 rounded-full flex items-center justify-center hover:bg-amber-400 hover:scale-110 transition shadow-lg shadow-amber-500/50 disabled:opacity-50 disabled:cursor-not-allowed">
                                 <i class="ph ph-shopping-cart-simple text-2xl"></i>
                             </button>
                         </div>
@@ -648,7 +705,10 @@
                             <span class="font-bold text-xl text-black dark:text-white">${p.price} <span class="text-xs text-neutral-500 font-normal">MAD</span></span>
                         </div>
                         <h4 class="font-serif text-lg leading-tight mb-2 text-black dark:text-white" ${isRTL ? 'dir="rtl"' : ''}>${p.name}</h4>
-                        <p class="text-[11px] text-neutral-500 uppercase tracking-widest mt-auto font-bold">${p.brand}</p>
+                        <div class="flex items-center justify-between mt-auto">
+                            <p class="text-[11px] text-neutral-500 uppercase tracking-widest font-bold">${p.brand}</p>
+                            ${p.stock > 3 ? `<span class="text-[10px] text-green-500 font-bold flex items-center"><i class="ph-fill ph-check-circle mr-1"></i> En stock</span>` : ''}
+                        </div>
                     </div>
                 </div>
             `;
@@ -698,18 +758,21 @@
         // Cart Functions
         function addToCart(id) {
             const product = products.find(p => p.id === id);
+            if (!product || product.stock === 0) return;
             const existing = cart.find(item => item.id === id);
             if (existing) {
                 existing.quantity += 1;
             } else {
                 cart.push({ ...product, quantity: 1 });
             }
+            saveCart();
             updateCartBadge();
-            showToast(`Ajouté : ${product.name}`);
+            showToast(`🛒 Ajouté : ${product.name}`);
         }
 
         function removeFromCart(id) {
             cart = cart.filter(item => item.id !== id);
+            saveCart();
             updateCartBadge();
             renderCart();
         }
@@ -719,7 +782,7 @@
             if (item) {
                 item.quantity += delta;
                 if (item.quantity <= 0) removeFromCart(id);
-                else renderCart();
+                else { saveCart(); renderCart(); }
             }
             updateCartBadge();
         }
@@ -819,58 +882,10 @@
             window.open(`https://wa.me/${adminPhone}?text=${encodeURIComponent(msg)}`, '_blank');
         }
 
-        // Admin Functions
-        function attemptAdminLogin() {
-            if (isAdmin) {
-                switchView('admin');
-                return;
-            }
-            const pwd = prompt("Accès CMS (Mot de passe : admin)");
-            if (pwd === 'admin') {
-                isAdmin = true;
-                switchView('admin');
-                renderAdminTable();
-                showToast("Connexion réussie");
-            } else if (pwd !== null) {
-                showToast("Mot de passe incorrect");
-            }
-        }
-
-        function logoutAdmin() {
-            isAdmin = false;
-            switchView('store');
-            showToast("Déconnecté");
-        }
-
+        // Admin — simple redirect helpers
         function savePhone() {
-            adminPhone = document.getElementById('admin-phone').value;
-            const phoneFormatted = adminPhone.replace(/(\d{3})(\d{3})(\d{2})(\d{2})/, "+$1 $2 $3 $4");
-            document.getElementById('footer-phone').innerText = phoneFormatted;
-            showToast("Numéro WhatsApp mis à jour");
-        }
-
-        function updateAdminStats() {
-            document.getElementById('stat-total-products').innerText = products.length;
-        }
-
-        function renderAdminTable() {
-            const tbody = document.getElementById('admin-table-body');
-            tbody.innerHTML = products.map(p => {
-                const catStyle = getCategoryStyle(p.category);
-                return `
-                <tr class="hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition">
-                    <td class="p-4 font-mono text-xs font-bold text-neutral-500">${p.reference}</td>
-                    <td class="p-4 text-[10px] font-bold uppercase tracking-widest text-neutral-400">${p.brand}</td>
-                    <td class="p-4 font-bold text-black dark:text-white" ${/[\u0600-\u06FF]/.test(p.name) ? 'dir="rtl"' : ''}>
-                        ${p.name}
-                        ${p.isBestseller ? '<i class="ph-fill ph-star text-amber-500 ml-1" title="Top Vente"></i>' : ''}
-                    </td>
-                    <td class="p-4">
-                        <span class="${catStyle.bg} text-white px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider">${p.category}</span>
-                    </td>
-                    <td class="p-4 font-bold">${p.price} MAD</td>
-                </tr>
-            `}).join('');
+            adminPhone = document.getElementById('footer-phone').innerText.replace(/\D/g,'');
+            localStorage.setItem('jamali_wa', adminPhone);
         }
 
         /* ================= TOUR / DEMO LOGIC ================= */
