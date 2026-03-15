@@ -109,6 +109,14 @@ def admin_page():
     return send_from_directory(".", "admin.html")
 
 # ================= PUBLIC API =================
+@app.route("/api/products", methods=["GET"])
+def get_public_products():
+    """Catalogue public — utilisé par le storefront."""
+    if db is None:
+        return jsonify([])
+    docs = list(db.products.find({"available": {"$ne": False}}).sort("createdAt", 1))
+    return jsonify([doc_to_dict(p) for p in docs])
+
 @app.route("/api/status", methods=["GET"])
 def status():
     return jsonify({"status": "ok", "db": db is not None, "ai": model is not None})

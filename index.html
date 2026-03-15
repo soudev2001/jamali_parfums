@@ -328,13 +328,7 @@
             <div id="favorites-container"></div>
         </div>
 
-        <!-- ================= ADMIN REDIRECT VIEW ================= -->
-        <div id="view-admin" class="view-section max-w-2xl mx-auto px-4 py-24 text-center">
-            <i class="ph-fill ph-shield-check text-6xl text-amber-500 mb-4 block"></i>
-            <h2 class="text-2xl font-serif font-bold mb-3">Espace Admin</h2>
-            <p class="text-neutral-500 mb-6">Le CMS complet s'ouvre dans une page dédiée.</p>
-            <a href="/admin" class="inline-block bg-amber-600 text-black font-bold px-8 py-3 rounded-full hover:bg-amber-500 transition shadow-lg">Ouvrir le CMS Admin</a>
-        </div>
+        <!-- Admin : lien direct vers /admin (géré par Flask) -->
 
     </main>
 
@@ -501,39 +495,79 @@
         let products = [];
         let bestSellers = [];
 
-        const mapData = (dataArray, category, imgArray) => {
-            let imgIndex = 0;
-            dataArray.forEach(group => {
-                group.items.forEach((item, index) => {
-                    const split = item.split('-');
-                    const ref = split[0];
-                    const name = split.slice(1).join('-').replace('Style ', '');
+        /* ─── Charger les produits depuis MongoDB via API ─── */
+        async function loadProductsFromAPI() {
+            try {
+                const r = await fetch('/api/products');
+                if (!r.ok) throw new Error('API error');
+                const data = await r.json();
+                if (!Array.isArray(data) || data.length === 0) throw new Error('empty');
+                products = data.map(p => ({
+                    id:          p._id || p.reference,
+                    reference:   p.reference  || '',
+                    name:        p.name        || '',
+                    brand:       p.brand       || '',
+                    category:    normCat(p.category),
+                    price:       p.price       || 150,
+                    stock:       typeof p.stock === 'number' ? p.stock : 99,
+                    image:       p.image       || picForCat(normCat(p.category)),
+                    isBestseller: !!(p.isBestseller || p.bestseller),
+                    available:   p.available !== false,
+                    type:        p.type  || '',
+                    volume:      p.volume || '',
+                    tags:        Array.isArray(p.tags) ? p.tags : []
+                }));
+                return true;
+            } catch { return false; }
+        }
 
-                    // Assign random best sellers (about 15% chance)
-                    const isBestseller = Math.random() > 0.85;
+        function normCat(c) {
+            if (!c) return 'Oriental';
+            const s = String(c).toLowerCase();
+            if (s === 'homme')   return 'Homme';
+            if (s === 'femme')   return 'Femme';
+            if (s === 'mixte')   return 'Mixte';
+            if (s.includes('oud') || s === 'oriental') return 'Oriental';
+            // already capitalised?
+            const cap = c.charAt(0).toUpperCase() + c.slice(1);
+            return cap;
+        }
 
-                    products.push({
-                        id: ref,
-                        reference: ref,
-                        name: name,
-                        brand: group.b,
-                        category: category,
-                        price: 150,
-                        stock: Math.floor(Math.random() * 20) + 1,
-                        image: imgArray[imgIndex % imgArray.length],
-                        isBestseller: isBestseller
+        function picForCat(cat) {
+            if (cat === 'Homme')   return imagesMen[0];
+            if (cat === 'Femme')   return imagesWomen[0];
+            return imagesOriental[0];
+        }
+
+        /* ─── Fallback hardcodé si l'API est indisponible ─── */
+        function loadProductsFallback() {
+            const mapData = (dataArray, category, imgArray) => {
+                let imgIndex = 0;
+                dataArray.forEach(group => {
+                    group.items.forEach(item => {
+                        const split = item.split('-');
+                        const ref   = split[0];
+                        const name  = split.slice(1).join('-').replace('Style ', '');
+                        products.push({
+                            id: ref, reference: ref, name, brand: group.b,
+                            category, price: 150,
+                            stock: Math.floor(Math.random() * 20) + 1,
+                            image: imgArray[imgIndex % imgArray.length],
+                            isBestseller: Math.random() > 0.85
+                        });
+                        imgIndex++;
                     });
-                    imgIndex++;
                 });
-            });
-        };
+            };
+            mapData(rawDataMen,     'Homme',   imagesMen);
+            mapData(rawDataWomen,   'Femme',   imagesWomen);
+            mapData(rawDataOriental,'Oriental',imagesOriental);
+        }
 
-        mapData(rawDataMen, 'Homme', imagesMen);
-        mapData(rawDataWomen, 'Femme', imagesWomen);
-        mapData(rawDataOriental, 'Oriental', imagesOriental);
-
-        // Populate Top Ventes strictly with items marked as bestseller
-        bestSellers = products.filter(p => p.isBestseller).slice(0, 8); // take top 8 max
+        // Top Ventes = bestsellers (max 8)
+        function refreshBestSellers() {
+            bestSellers = products.filter(p => p.isBestseller).slice(0, 8);
+        }
 
         /* ================= STATE & APP LOGIC ================= */
         let cart = JSON.parse(localStorage.getItem('jamali_cart') || '[]');
@@ -597,7 +631,12 @@
             container.innerHTML = `<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">${favProds.map(p => generateProductCardHTML(p)).join('')}</div>`;
         }
 
-        function init() {
+        async function init() {
+            // Chargement des produits : API d'abord, fallback hardcodé ensuite
+            const apiOk = await loadProductsFromAPI();
+            if (!apiOk) loadProductsFallback();
+            refreshBestSellers();
+
             renderStore();
             updateCartBadge();
             updateFavBadge();
@@ -910,10 +949,10 @@
                 text: 'Ajoutez des articles et validez votre commande directement via <b>WhatsApp</b> en un seul clic !<br><br><span class="font-arabic text-sm" dir="rtl">أضف المنتجات وأرسل طلبك مباشرة عبر الواتساب بضغطة زر واحدة!</span>'
             },
             {
-                view: 'admin',
-                icon: 'ph-gear-six',
-                title: 'Espace Admin / الإدارة',
-                text: 'Un CMS caché permet de gérer tout votre catalogue et le numéro de réception des commandes.<br><span class="text-amber-500 text-xs mt-2 block">(Mot de passe démo : <b>admin</b>)</span>'
+                view: 'store',
+                icon: 'ph-star',
+                title: 'Favoris & Panier / المفضلة',
+                text: 'Ajoutez vos parfums en favoris <i class="ph ph-heart text-rose-500"></i> ou directement au panier. Votre sélection est sauvegardée automatiquement sur votre appareil.'
             }
         ];
 
@@ -928,7 +967,6 @@
             const step = tourData[currentTourStep];
 
             // Switch background view automatically
-            if(step.view === 'admin') { isAdmin = true; } // Bypass password for tour
             switchView(step.view);
             if(step.view === 'store') window.scrollTo(0, 400);
 
@@ -973,7 +1011,6 @@
             document.getElementById('tour-overlay').classList.add('hidden');
             document.getElementById('tour-overlay').classList.remove('flex');
             localStorage.setItem('jamali_tour_done', 'true');
-            isAdmin = false; // Reset admin bypass
             switchView('store');
             window.scrollTo(0,0);
         }
