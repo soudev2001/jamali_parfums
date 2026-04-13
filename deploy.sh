@@ -33,6 +33,13 @@ echo "║     Jamali Parfum — Script de déploiement    ║"
 echo "╚══════════════════════════════════════════════╝"
 echo -e "${NC}"
 
+# ─── Git pull (dernière version) ──────────────────────────────
+if [ -d .git ]; then
+  info "Récupération des dernières modifications (git pull)..."
+  git pull --ff-only || error "Échec du git pull. Résolvez les conflits manuellement."
+  success "Code à jour."
+fi
+
 # ─── Pré-requis ───────────────────────────────────────────────
 command -v docker >/dev/null 2>&1 || error "Docker n'est pas installé."
 docker compose version >/dev/null 2>&1 || error "Docker Compose (plugin) n'est pas installé."
