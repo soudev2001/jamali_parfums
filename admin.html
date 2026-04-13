@@ -664,6 +664,7 @@ async function tryAutoLogin() {
   try {
     const r = await api('GET', '/api/admin/stats');
     if (r.ok) showApp();
+    else { TOKEN = ''; localStorage.removeItem('jp_admin_token'); }
   } catch { TOKEN = ''; localStorage.removeItem('jp_admin_token'); }
 }
 
