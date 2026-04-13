@@ -14,6 +14,9 @@ COPY index.html .
 COPY admin.html .
 COPY logo.svg .
 
+# Dossier uploads pour les images produits
+RUN mkdir -p /app/uploads
+
 EXPOSE 5000
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
