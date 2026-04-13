@@ -1,6 +1,8 @@
 ﻿import os
 import io
 import csv
+import re
+import base64
 import secrets
 import hmac
 import functools
@@ -23,8 +25,12 @@ from datetime import datetime
 # Charger les variables d'environnement (.env prend toujours la priorité)
 load_dotenv(override=True)
 
+UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
 app = Flask(__name__)
 CORS(app)
+app.config['MAX_CONTENT_LENGTH'] = 3 * 1024 * 1024  # 3 Mo max
 
 # ================= CONFIGURATION =================
 MONGO_URI = os.getenv("MONGO_URI")
@@ -189,6 +195,41 @@ def public_faq():
     return jsonify(sorted(FAQ_STORE, key=lambda x: x.get('order', 0)))
 
 
+# ──────────────────── UPLOADS ──────────────────────────────────────
+
+@app.route('/uploads/<path:filename>')
+def serve_upload(filename):
+    return send_from_directory(UPLOAD_FOLDER, filename)
+
+
+def _save_b64_image(b64_data):
+    """Decode a data-URI base64 image string, save to uploads/, return the URL path."""
+    match = re.match(r'data:image/(\w+);base64,(.*)', b64_data, re.DOTALL)
+    if not match:
+        return ''
+    ext = match.group(1).lower()
+    if ext == 'jpeg':
+        ext = 'jpg'
+    if ext not in ('jpg', 'png', 'gif', 'webp'):
+        return ''
+    raw = base64.b64decode(match.group(2))
+    fname = secrets.token_hex(12) + '.' + ext
+    fpath = os.path.join(UPLOAD_FOLDER, fname)
+    with open(fpath, 'wb') as f:
+        f.write(raw)
+    return f'/uploads/{fname}'
+
+
+def _process_product_image(data):
+    """If data contains image_b64, save it and set image field. Remove image_b64 before DB storage."""
+    b64 = data.pop('image_b64', '')
+    if b64:
+        url = _save_b64_image(b64)
+        if url:
+            data['image'] = url
+    return data
+
+
 # ──────────────────── ADMIN AUTH ───────────────────────────────────
 
 def require_admin(f):
@@ -298,6 +339,7 @@ def admin_products():
 @require_admin
 def admin_create_product():
     data = request.json or {}
+    data = _process_product_image(data)
     if db is not None:
         result = db.products.insert_one(data)
         data['_id'] = str(result.inserted_id)
@@ -313,6 +355,7 @@ def admin_create_product():
 def admin_update_product(product_id):
     data = request.json or {}
     data.pop('_id', None)
+    data = _process_product_image(data)
     if db is not None:
         try:
             db.products.update_one({"_id": ObjectId(product_id)}, {"$set": data})
