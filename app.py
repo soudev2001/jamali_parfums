@@ -6,6 +6,7 @@ import base64
 import secrets
 import hmac
 import functools
+import jwt
 try:
     import stripe as _stripe_lib
 except ImportError:
@@ -51,9 +52,9 @@ ORDERS_STORE   = []
 FAQ_STORE      = []   # FAQ in-memory
 ACTIVITY_STORE = []   # Activity log in-memory
 
-# Admin tokens & password
+# Admin password & JWT secret
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin123")
-ADMIN_TOKENS   = {}  # token -> expiry (simple in-memory store)
+JWT_SECRET     = os.getenv("JWT_SECRET", secrets.token_hex(32))
 
 # ================= INITIALISATIONS =================
 db = None
@@ -251,7 +252,11 @@ def require_admin(f):
     @functools.wraps(f)
     def wrapper(*args, **kwargs):
         token = request.headers.get('X-Admin-Token', '')
-        if not token or token not in ADMIN_TOKENS:
+        if not token:
+            return jsonify({"error": "Non autorisé"}), 403
+        try:
+            jwt.decode(token, JWT_SECRET, algorithms=['HS256'])
+        except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
             return jsonify({"error": "Non autorisé"}), 403
         return f(*args, **kwargs)
     return wrapper
@@ -271,8 +276,9 @@ def admin_login():
     pwd = data.get('password', '')
     if not hmac.compare_digest(pwd, ADMIN_PASSWORD):
         return jsonify({"error": "Mot de passe incorrect"}), 401
-    token = secrets.token_hex(32)
-    ADMIN_TOKENS[token] = True
+    import datetime as _dt
+    payload = {"role": "admin", "exp": _dt.datetime.now(_dt.timezone.utc) + _dt.timedelta(days=7)}
+    token = jwt.encode(payload, JWT_SECRET, algorithm='HS256')
     _log_activity('auth', 'Connexion admin')
     return jsonify({"token": token})
 
@@ -280,8 +286,7 @@ def admin_login():
 @app.route('/api/admin/logout', methods=['POST'])
 @require_admin
 def admin_logout():
-    token = request.headers.get('X-Admin-Token', '')
-    ADMIN_TOKENS.pop(token, None)
+    # JWT is stateless – client just discards the token
     return jsonify({"ok": True})
 
 
