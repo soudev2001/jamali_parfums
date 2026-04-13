@@ -36,7 +36,9 @@ echo -e "${NC}"
 # ─── Git pull (dernière version) ──────────────────────────────
 if [ -d .git ]; then
   info "Récupération des dernières modifications (git pull)..."
+  git stash --quiet 2>/dev/null || true
   git pull --ff-only || error "Échec du git pull. Résolvez les conflits manuellement."
+  git stash pop --quiet 2>/dev/null || true
   success "Code à jour."
 fi
 
