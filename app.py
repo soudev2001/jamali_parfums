@@ -118,13 +118,14 @@ def get_products():
         if cat:  filt['category'] = cat
         if q:    filt['$or'] = [{'name':{'$regex':q,'$options':'i'}},{'brand':{'$regex':q,'$options':'i'}}]
         total = db.products.count_documents(filt)
-        items = list(db.products.find(filt, {'_id':0}).skip((page-1)*limit).limit(limit))
+        items = list(db.products.find(filt, {'_id':0, 'image_b64':0}).skip((page-1)*limit).limit(limit))
         return jsonify({"items": items, "total": total, "db": True})
     # fallback statique
     items = PRODUCTS_STORE
     if cat: items = [p for p in items if p.get('category')==cat]
     if q:   items = [p for p in items if q in p.get('name','').lower() or q in p.get('brand','').lower()]
-    return jsonify({"items": items[(page-1)*limit:page*limit], "total": len(items), "db": False})
+    page_items = [{k:v for k,v in p.items() if k != 'image_b64'} for p in items[(page-1)*limit:page*limit]]
+    return jsonify({"items": page_items, "total": len(items), "db": False})
 
 
 @app.route('/api/chat', methods=['POST'])
