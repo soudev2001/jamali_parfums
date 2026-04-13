@@ -85,19 +85,7 @@ if TWILIO_ACCOUNT_SID and "votre_twilio" not in TWILIO_ACCOUNT_SID:
 else:
     twilio_client = None
 
-# ================= MIGRATION: convertir image_b64 existants =================
-if db is not None:
-    _b64_products = list(db.products.find({"image_b64": {"$ne": ""}, "image": {"$in": ["", None]}}, {"_id": 1, "image_b64": 1}))
-    for _p in _b64_products:
-        _url = _save_b64_image(_p.get('image_b64', ''))
-        if _url:
-            db.products.update_one({"_id": _p["_id"]}, {"$set": {"image": _url}, "$unset": {"image_b64": ""}})
-    if _b64_products:
-        print(f"âœ… Migration : {len(_b64_products)} image(s) b64 converties en fichiers")
-    # Nettoyer les image_b64 restants
-    db.products.update_many({}, {"$unset": {"image_b64": ""}})
-
-# ================= ROUTES =================
+# ================= ROUTES =================================================================
 @app.route('/')
 def home():
     return send_from_directory('.', 'index.html')
@@ -217,13 +205,15 @@ def serve_upload(filename):
 
 def _save_b64_image(b64_data):
     """Decode a data-URI base64 image string, save to uploads/, return the URL path."""
-    match = re.match(r'data:image/(\w+);base64,(.*)', b64_data, re.DOTALL)
+    match = re.match(r'data:image/([\w+]+);base64,(.*)', b64_data, re.DOTALL)
     if not match:
         return ''
     ext = match.group(1).lower()
     if ext == 'jpeg':
         ext = 'jpg'
-    if ext not in ('jpg', 'png', 'gif', 'webp'):
+    elif ext == 'svg+xml':
+        ext = 'svg'
+    if ext not in ('jpg', 'png', 'gif', 'webp', 'svg'):
         return ''
     raw = base64.b64decode(match.group(2))
     fname = secrets.token_hex(12) + '.' + ext
@@ -241,6 +231,18 @@ def _process_product_image(data):
         if url:
             data['image'] = url
     return data
+
+
+# ================= MIGRATION: convertir image_b64 existants =================
+if db is not None:
+    _b64_products = list(db.products.find({"image_b64": {"$ne": ""}, "image": {"$in": ["", None]}}, {"_id": 1, "image_b64": 1}))
+    for _p in _b64_products:
+        _url = _save_b64_image(_p.get('image_b64', ''))
+        if _url:
+            db.products.update_one({"_id": _p["_id"]}, {"$set": {"image": _url}, "$unset": {"image_b64": ""}})
+    if _b64_products:
+        print(f"Migration : {len(_b64_products)} image(s) b64 converties en fichiers")
+    db.products.update_many({}, {"$unset": {"image_b64": ""}})
 
 
 # ──────────────────── ADMIN AUTH ───────────────────────────────────
