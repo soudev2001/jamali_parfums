@@ -85,6 +85,18 @@ if TWILIO_ACCOUNT_SID and "votre_twilio" not in TWILIO_ACCOUNT_SID:
 else:
     twilio_client = None
 
+# ================= MIGRATION: convertir image_b64 existants =================
+if db is not None:
+    _b64_products = list(db.products.find({"image_b64": {"$ne": ""}, "image": {"$in": ["", None]}}, {"_id": 1, "image_b64": 1}))
+    for _p in _b64_products:
+        _url = _save_b64_image(_p.get('image_b64', ''))
+        if _url:
+            db.products.update_one({"_id": _p["_id"]}, {"$set": {"image": _url}, "$unset": {"image_b64": ""}})
+    if _b64_products:
+        print(f"âœ… Migration : {len(_b64_products)} image(s) b64 converties en fichiers")
+    # Nettoyer les image_b64 restants
+    db.products.update_many({}, {"$unset": {"image_b64": ""}})
+
 # ================= ROUTES =================
 @app.route('/')
 def home():
