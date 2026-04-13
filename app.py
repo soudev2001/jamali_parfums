@@ -54,7 +54,7 @@ ACTIVITY_STORE = []   # Activity log in-memory
 
 # Admin password & JWT secret
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin123")
-JWT_SECRET     = os.getenv("JWT_SECRET", secrets.token_hex(32))
+_jwt_env       = os.getenv("JWT_SECRET", "")
 
 # ================= INITIALISATIONS =================
 db = None
@@ -65,7 +65,19 @@ try:
         print("âœ… ConnectÃ© Ã  MongoDB")
 except Exception as e:
     print(f"âŒ Erreur MongoDB : {e}")
-
+# Resolve JWT_SECRET: env var > MongoDB > generate + persist
+if _jwt_env:
+    JWT_SECRET = _jwt_env
+elif db is not None:
+    _sec_doc = db.settings.find_one({"_id": "jwt_secret"})
+    if _sec_doc:
+        JWT_SECRET = _sec_doc["secret"]
+    else:
+        JWT_SECRET = secrets.token_hex(32)
+        db.settings.insert_one({"_id": "jwt_secret", "secret": JWT_SECRET})
+    print("✅ JWT_SECRET chargé depuis MongoDB")
+else:
+    JWT_SECRET = secrets.token_hex(32)
 if GEMINI_API_KEY and "votre_cle" not in GEMINI_API_KEY:
     genai.configure(api_key=GEMINI_API_KEY)
     system_prompt = """

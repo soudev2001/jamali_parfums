@@ -58,6 +58,13 @@
         /* ── Vol buttons ── */
         .vol-btn{flex:1;display:flex;flex-direction:column;align-items:center;padding:10px 6px;border-radius:12px;border:2px solid #374151;font-weight:700;font-size:13px;cursor:pointer;transition:all .2s;background:transparent}
         .vol-btn:hover{border-color:#7e22ce}
+        /* ── Filter tabs ── */
+        .cat-tab{position:relative;white-space:nowrap;transition:all .25s ease;border:2px solid transparent}
+        .cat-tab:hover{background:rgba(147,51,234,.12);border-color:rgba(147,51,234,.3)}
+        .cat-tab.active{background:linear-gradient(135deg,#9333ea,#7e22ce);color:#fff;border-color:#9333ea;box-shadow:0 4px 14px rgba(147,51,234,.35)}
+        .cat-tab .cat-count{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;font-size:10px;font-weight:700;border-radius:999px;margin-left:6px;padding:0 5px;background:rgba(255,255,255,.15)}
+        .cat-tab.active .cat-count{background:rgba(255,255,255,.25)}
+        .cat-tab:not(.active) .cat-count{background:rgba(147,51,234,.15);color:#a855f7}
     </style>
 
 </head>
@@ -122,13 +129,14 @@
                 <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4 bg-white dark:bg-neutral-900 p-4 rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-800 sticky top-20 z-20">
                     <div class="relative w-full md:w-1/3">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i class="ph ph-magnifying-glass text-neutral-400"></i></div>
-                        <input type="text" id="search-input" onkeyup="handleSearch()" placeholder="Rechercher un parfum..." class="block w-full pl-10 pr-3 py-2 border border-neutral-300 dark:border-neutral-700 rounded-xl leading-5 bg-neutral-50 dark:bg-neutral-950 text-neutral-900 dark:text-white placeholder-neutral-500 focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                        <input type="text" id="search-input" oninput="handleSearch()" placeholder="Rechercher par nom, marque, référence..." class="block w-full pl-10 pr-9 py-2.5 border border-neutral-300 dark:border-neutral-700 rounded-xl leading-5 bg-neutral-50 dark:bg-neutral-950 text-neutral-900 dark:text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 sm:text-sm transition-shadow">
+                        <button id="search-clear" onclick="clearSearch()" class="absolute inset-y-0 right-0 pr-3 flex items-center text-neutral-400 hover:text-primary-500 transition hidden"><i class="ph ph-x-circle text-lg"></i></button>
                     </div>
-                    <div class="flex space-x-2 bg-neutral-100 dark:bg-neutral-950 p-1 rounded-xl overflow-x-auto hide-scrollbar w-full md:w-auto">
-                        <button onclick="setCategory('Tous')" id="tab-Tous" class="cat-tab px-4 py-2 text-sm font-bold rounded-lg bg-primary-600 text-white shadow">Tous</button>
-                        <button onclick="setCategory('Homme')" id="tab-Homme" class="cat-tab px-4 py-2 text-sm font-bold rounded-lg text-neutral-500">Homme</button>
-                        <button onclick="setCategory('Femme')" id="tab-Femme" class="cat-tab px-4 py-2 text-sm font-bold rounded-lg text-neutral-500">Femme</button>
-                        <button onclick="setCategory('Oriental')" id="tab-Oriental" class="cat-tab px-4 py-2 text-sm font-bold rounded-lg text-neutral-500">Oriental</button>
+                    <div class="flex space-x-1.5 bg-neutral-100 dark:bg-neutral-950 p-1.5 rounded-xl overflow-x-auto hide-scrollbar w-full md:w-auto">
+                        <button onclick="setCategory('Tous')" id="tab-Tous" class="cat-tab active px-4 py-2 text-sm font-bold rounded-lg flex items-center"><i class="ph ph-squares-four mr-1.5"></i>Tous<span class="cat-count" id="count-Tous"></span></button>
+                        <button onclick="setCategory('Homme')" id="tab-Homme" class="cat-tab px-4 py-2 text-sm font-bold rounded-lg text-neutral-500 flex items-center"><i class="ph ph-gender-male mr-1.5"></i>Homme<span class="cat-count" id="count-Homme"></span></button>
+                        <button onclick="setCategory('Femme')" id="tab-Femme" class="cat-tab px-4 py-2 text-sm font-bold rounded-lg text-neutral-500 flex items-center"><i class="ph ph-gender-female mr-1.5"></i>Femme<span class="cat-count" id="count-Femme"></span></button>
+                        <button onclick="setCategory('Oriental')" id="tab-Oriental" class="cat-tab px-4 py-2 text-sm font-bold rounded-lg text-neutral-500 flex items-center"><i class="ph ph-moon-stars mr-1.5"></i>Oriental<span class="cat-count" id="count-Oriental"></span></button>
                     </div>
                 </div>
 
@@ -548,8 +556,23 @@
 
         function showToast(msg) { const t = document.getElementById('toast'); document.getElementById('toast-message').innerText = msg; t.classList.remove('translate-y-20', 'opacity-0'); setTimeout(() => t.classList.add('translate-y-20', 'opacity-0'), 3000); }
 
-        function setCategory(cat) { currentCategory = cat; currentPage = 1; renderStore(); document.querySelectorAll('.cat-tab').forEach(el => el.classList.remove('bg-primary-600', 'text-white')); document.getElementById(`tab-${cat}`).classList.add('bg-primary-600', 'text-white'); }
-        function handleSearch() { searchQuery = document.getElementById('search-input').value.toLowerCase(); currentPage = 1; renderStore(); }
+        function setCategory(cat) {
+            currentCategory = cat; currentPage = 1; renderStore();
+            document.querySelectorAll('.cat-tab').forEach(el => el.classList.remove('active'));
+            document.getElementById(`tab-${cat}`).classList.add('active');
+        }
+        function handleSearch() {
+            searchQuery = document.getElementById('search-input').value.toLowerCase().trim();
+            currentPage = 1;
+            document.getElementById('search-clear').classList.toggle('hidden', !searchQuery);
+            renderStore();
+        }
+        function clearSearch() {
+            document.getElementById('search-input').value = '';
+            searchQuery = ''; currentPage = 1;
+            document.getElementById('search-clear').classList.add('hidden');
+            renderStore();
+        }
 
 
         // ── Unsplash photo pool (parfums) ──────────────────────────
@@ -624,12 +647,25 @@
         }
 
         function renderStore() {
-            let filtered = products;
-            if(currentCategory !== 'Tous') filtered = filtered.filter(p => p.category === currentCategory);
-            if(searchQuery) filtered = filtered.filter(p =>
+            // Apply search filter first (across all categories) for counts
+            let searched = products;
+            if(searchQuery) searched = searched.filter(p =>
                 p.name.toLowerCase().includes(searchQuery) ||
-                (p.brand||'').toLowerCase().includes(searchQuery)
+                (p.brand||'').toLowerCase().includes(searchQuery) ||
+                (p.reference||'').toLowerCase().includes(searchQuery)
             );
+            // Update category counts
+            const cTous = document.getElementById('count-Tous');
+            const cHomme = document.getElementById('count-Homme');
+            const cFemme = document.getElementById('count-Femme');
+            const cOriental = document.getElementById('count-Oriental');
+            if(cTous) cTous.textContent = searched.length;
+            if(cHomme) cHomme.textContent = searched.filter(p=>p.category==='Homme').length;
+            if(cFemme) cFemme.textContent = searched.filter(p=>p.category==='Femme').length;
+            if(cOriental) cOriental.textContent = searched.filter(p=>p.category==='Oriental').length;
+            // Apply category filter
+            let filtered = searched;
+            if(currentCategory !== 'Tous') filtered = filtered.filter(p => p.category === currentCategory);
             const visible = filtered.slice(0, currentPage * PAGE_SIZE);
             const remaining = filtered.length - visible.length;
             document.getElementById('product-grid').innerHTML = visible.map(p => generateProductCardHTML(p)).join('');

@@ -473,7 +473,7 @@ tailwind.config = {
         <i class="ph ph-x text-xl"></i>
       </button>
     </div>
-    <form id="product-form" onsubmit="saveProduct(event)" class="p-6 space-y-4">
+    <form id="product-form" onsubmit="saveProduct(event)" novalidate class="p-6 space-y-4">
       <input type="hidden" id="edit-id">
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -563,7 +563,7 @@ tailwind.config = {
         <!-- URL panel -->
         <div id="img-panel-url" class="hidden">
           <div class="flex gap-2">
-            <input id="f-image-url" type="url" class="form-input flex-1" placeholder="https://images.unsplash.com/..." oninput="previewImageUrl()">
+            <input id="f-image-url" type="text" class="form-input flex-1" placeholder="https://images.unsplash.com/..." oninput="previewImageUrl()">
             <img id="img-preview" src="" alt="" class="w-12 h-12 rounded-lg object-cover border border-neutral-700 hidden flex-shrink-0">
           </div>
         </div>
@@ -920,6 +920,16 @@ function openProductModal(id=null) {
         if (document.getElementById('img-remove-btn')) document.getElementById('img-remove-btn').classList.remove('hidden');
         imageB64 = existingImg;
         imgFromDrop = true;
+      } else if (existingImg.startsWith('/uploads/')) {
+        // Show uploaded image preview in file tab
+        switchImgTab('file');
+        const prev = document.getElementById('img-upload-preview');
+        if (prev) { prev.src = existingImg; prev.classList.remove('hidden'); }
+        if (document.getElementById('img-drop-zone')) {
+          document.getElementById('img-drop-zone').querySelector('.img-placeholder')?.classList.add('hidden');
+        }
+        if (document.getElementById('img-remove-btn')) document.getElementById('img-remove-btn').classList.remove('hidden');
+        document.getElementById('f-image').value = existingImg;
       } else {
         switchImgTab('url');
         if (document.getElementById('f-image-url')) {
@@ -1295,6 +1305,7 @@ async function saveProduct(e) {
   err.classList.add('hidden');
 
   const urlImageVal = (document.getElementById('f-image-url')?.value || '').trim();
+  const hiddenImage = (document.getElementById('f-image')?.value || '').trim();
   const payload = {
     reference:    document.getElementById('f-reference').value.trim(),
     name:         document.getElementById('f-name').value.trim(),
@@ -1302,7 +1313,7 @@ async function saveProduct(e) {
     category:     document.getElementById('f-category').value,
     price:        parseFloat(document.getElementById('f-price').value) || 150,
     stock:        parseInt(document.getElementById('f-stock').value)   || 0,
-    image:        imgFromDrop ? '' : urlImageVal,
+    image:        imgFromDrop ? '' : (urlImageVal || hiddenImage),
     image_b64:    imgFromDrop ? imageB64 : '',
     description:  (document.getElementById('f-description')?.value || '').trim(),
     type:         document.getElementById('f-type').value,
