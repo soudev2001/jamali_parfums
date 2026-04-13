@@ -21,10 +21,54 @@ tailwind.config = {
 </script>
 <script src="https://unpkg.com/@phosphor-icons/web"></script>
 <style>
+  /* ── Theme CSS Variables ── */
+  :root {
+    --bg-body: #0a0a0a;
+    --bg-card: #171717;
+    --bg-input: #1a1a1a;
+    --bg-hover: #262626;
+    --bg-header: #171717;
+    --border: #262626;
+    --border-hover: #404040;
+    --text-primary: #f5f5f5;
+    --text-secondary: #a3a3a3;
+    --text-muted: #737373;
+    --text-heading: #ffffff;
+    --scrollbar-track: #0f0f0f;
+    --scrollbar-thumb: #9333ea;
+    --table-head: #262626;
+    --modal-bg: #171717;
+    --toast-bg: #262626;
+    --faq-bg: #111111;
+    --faq-border: #262626;
+    --logo-filter: invert(1);
+  }
+  html.light {
+    --bg-body: #f5f5f5;
+    --bg-card: #ffffff;
+    --bg-input: #fafafa;
+    --bg-hover: #f0f0f0;
+    --bg-header: #ffffff;
+    --border: #e5e5e5;
+    --border-hover: #d4d4d4;
+    --text-primary: #171717;
+    --text-secondary: #525252;
+    --text-muted: #737373;
+    --text-heading: #0a0a0a;
+    --scrollbar-track: #f5f5f5;
+    --scrollbar-thumb: #9333ea;
+    --table-head: #f5f5f5;
+    --modal-bg: #ffffff;
+    --toast-bg: #ffffff;
+    --faq-bg: #fafafa;
+    --faq-border: #e5e5e5;
+    --logo-filter: none;
+  }
+
   html{scroll-behavior:smooth}
   ::-webkit-scrollbar{width:6px;height:6px}
-  ::-webkit-scrollbar-track{background:#0f0f0f}
-  ::-webkit-scrollbar-thumb{background:#9333ea;border-radius:3px}
+  ::-webkit-scrollbar-track{background:var(--scrollbar-track)}
+  ::-webkit-scrollbar-thumb{background:var(--scrollbar-thumb);border-radius:3px}
   ::-webkit-scrollbar-thumb:hover{background:#a855f7}
   .tab-pane{display:none}.tab-pane.active{display:block}
   .modal-overlay{display:none}.modal-overlay.open{display:flex}
@@ -37,6 +81,72 @@ tailwind.config = {
   .stat-glow-blue  {box-shadow:0 0 20px rgba(59,130,246,0.12)}
   .stat-glow-green {box-shadow:0 0 20px rgba(34,197,94,0.12)}
   .stat-glow-white {box-shadow:0 0 20px rgba(255,255,255,0.05)}
+  html.light .stat-glow-white{box-shadow:0 0 20px rgba(0,0,0,0.04)}
+
+  /* ── Theme overrides ── */
+  body { background: var(--bg-body) !important; color: var(--text-primary) !important; }
+  /* Sidebar */
+  aside { background: var(--bg-card) !important; border-color: var(--border) !important; }
+  aside .border-b, aside .border-t { border-color: var(--border) !important; }
+  aside img.invert { filter: var(--logo-filter); }
+  /* Nav buttons */
+  .nav-btn { color: var(--text-muted) !important; }
+  .nav-btn:hover { background: var(--bg-hover) !important; color: var(--text-primary) !important; }
+  .nav-btn.active-tab { background: rgba(147,51,234,0.12) !important; color: #a855f7 !important; border-color: rgba(147,51,234,0.2) !important; }
+  /* Cards */
+  .th-card { background: var(--bg-card) !important; border-color: var(--border) !important; }
+  /* Headings */
+  .text-white { color: var(--text-heading) !important; }
+  /* Tables */
+  thead { background: var(--table-head) !important; }
+  thead th { color: var(--text-muted) !important; }
+  tbody { color: var(--text-primary) !important; }
+  .divide-neutral-800 > :not(:last-child) { border-color: var(--border) !important; }
+  /* Inputs & forms */
+  .form-input { background: var(--bg-input) !important; border-color: var(--border) !important; color: var(--text-primary) !important; }
+  select.form-input option { background: var(--bg-input) !important; color: var(--text-primary) !important; }
+  /* Search inputs */
+  #prod-search, #client-search { background: var(--bg-card) !important; border-color: var(--border) !important; color: var(--text-primary) !important; }
+  /* Modals */
+  .modal-overlay > div { background: var(--modal-bg) !important; border-color: var(--border) !important; }
+  .modal-overlay .sticky { background: var(--modal-bg) !important; border-color: var(--border) !important; }
+  /* Toast */
+  #toast { background: var(--toast-bg) !important; color: var(--text-primary) !important; }
+  /* Login */
+  #login-overlay { background: var(--bg-body) !important; }
+  #login-overlay > div { background: var(--bg-card) !important; border-color: var(--border) !important; }
+  #login-overlay input { background: var(--bg-input) !important; border-color: var(--border) !important; color: var(--text-primary) !important; }
+  #login-overlay img { filter: var(--logo-filter); }
+  /* FAQ items */
+  .faq-item { background: var(--faq-bg) !important; border-color: var(--faq-border) !important; }
+  /* Mobile bar */
+  .md\\:hidden.fixed { background: var(--bg-card) !important; border-color: var(--border) !important; }
+  /* Misc neutral elements */
+  .bg-neutral-900 { background: var(--bg-card) !important; }
+  .bg-neutral-950 { background: var(--bg-body) !important; }
+  .bg-neutral-800 { background: var(--bg-hover) !important; }
+  .border-neutral-800, .border-neutral-700 { border-color: var(--border) !important; }
+  .text-neutral-400 { color: var(--text-secondary) !important; }
+  .text-neutral-500 { color: var(--text-muted) !important; }
+  .text-neutral-300 { color: var(--text-secondary) !important; }
+  /* Image drop zone */
+  .img-drop-zone { border-color: var(--border-hover) !important; }
+  .img-drop-zone:hover { border-color: var(--text-muted) !important; }
+  /* Pagination */
+  .bg-neutral-800.rounded-lg { background: var(--bg-hover) !important; }
+  /* Demo toggle */
+  #demo-toggle, .bg-neutral-800.rounded-xl { background: var(--bg-hover) !important; }
+  /* Act filter btns */
+  .act-filter-btn:not(.active) { background: var(--bg-hover) !important; color: var(--text-muted) !important; }
+  /* img tab button */
+  .img-tab-btn:not(.active) { color: var(--text-muted) !important; }
+  .img-tab-btn.active { background: var(--bg-hover) !important; color: var(--text-primary) !important; }
+  /* Light mode specific adjustments */
+  html.light .bg-primary-600\\/15 { background: rgba(147,51,234,0.08) !important; }
+  html.light .modal-overlay { background: rgba(0,0,0,0.4) !important; }
+  html.light .border-primary-600\\/20 { border-color: rgba(147,51,234,0.15) !important; }
+  html.light .bg-gradient-to-r { background: linear-gradient(to right, rgba(147,51,234,0.06), transparent) !important; }
+  html.light #pwd-input { background: var(--bg-input) !important; }
 </style>
 </head>
 <body class="bg-neutral-950 text-neutral-100 min-h-screen flex">
@@ -133,6 +243,10 @@ tailwind.config = {
           <span id="demo-knob" class="absolute top-0.5 right-0.5 w-4 h-4 bg-white rounded-full shadow transition-all"></span>
         </button>
       </div>
+      <!-- Theme Toggle -->
+      <button onclick="toggleAdminTheme()" id="theme-toggle-btn" class="w-full flex items-center px-3 py-2 rounded-xl text-xs font-bold text-neutral-400 hover:bg-neutral-800 hover:text-white transition">
+        <i id="admin-theme-icon" class="ph ph-sun text-lg mr-2"></i> <span id="admin-theme-label">Mode Clair</span>
+      </button>
       <a href="/" target="_blank" class="w-full flex items-center px-3 py-2 rounded-xl text-xs font-bold text-neutral-500 hover:text-white hover:bg-neutral-800 transition">
         <i class="ph ph-storefront text-lg mr-2"></i> Voir la boutique
       </a>
@@ -649,6 +763,7 @@ tailwind.config = {
 /* ═══════════════════════════════════ STATE ═══════════════════════════════════ */
 let TOKEN      = localStorage.getItem('jp_admin_token') || '';
 let DEMO_MODE  = localStorage.getItem('jp_demo_mode') === '1';
+let ADMIN_THEME = localStorage.getItem('jp_admin_theme') || 'dark';
 let currentProdPage = 1;
 let prodTotal       = 0;
 let deleteTargetId  = null;
@@ -656,6 +771,7 @@ let productCache    = [];
 
 /* ═══════════════════════════════════ INIT ════════════════════════════════════ */
 window.onload = async function() {
+  applyAdminTheme();
   if (TOKEN) await tryAutoLogin();
   applyDemoMode();
 };
@@ -666,6 +782,27 @@ async function tryAutoLogin() {
     if (r.ok) showApp();
     else { TOKEN = ''; localStorage.removeItem('jp_admin_token'); }
   } catch { TOKEN = ''; localStorage.removeItem('jp_admin_token'); }
+}
+
+/* ═══════════════════════════════════ THEME ═══════════════════════════════════ */
+function applyAdminTheme() {
+  const html = document.documentElement;
+  if (ADMIN_THEME === 'light') {
+    html.classList.remove('dark');
+    html.classList.add('light');
+  } else {
+    html.classList.remove('light');
+    html.classList.add('dark');
+  }
+  const icon = document.getElementById('admin-theme-icon');
+  const label = document.getElementById('admin-theme-label');
+  if (icon) icon.className = ADMIN_THEME === 'light' ? 'ph ph-moon text-lg mr-2' : 'ph ph-sun text-lg mr-2';
+  if (label) label.textContent = ADMIN_THEME === 'light' ? 'Mode Sombre' : 'Mode Clair';
+}
+function toggleAdminTheme() {
+  ADMIN_THEME = ADMIN_THEME === 'dark' ? 'light' : 'dark';
+  localStorage.setItem('jp_admin_theme', ADMIN_THEME);
+  applyAdminTheme();
 }
 
 /* ═══════════════════════════════════ AUTH ════════════════════════════════════ */
