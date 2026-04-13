@@ -586,7 +586,7 @@
             const colors = ['7e22ce','6d28d9','5b21b6','4c1d95','7c3aed','6b21a8'];
             const hash = (brand+ref).split('').reduce((a,c)=>a+c.charCodeAt(0),0);
             const bg = colors[hash % colors.length];
-            const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><defs><linearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'><stop offset='0%25' style='stop-color:%23${bg};stop-opacity:1'/><stop offset='100%25' style='stop-color:%23c084fc;stop-opacity:0.4'/></linearGradient></defs><rect width='200' height='200' fill='url(%23g)'/><text x='100' y='115' text-anchor='middle' font-family='Georgia,serif' font-size='68' font-weight='bold' fill='rgba(255,255,255,0.9)'>${initials}</text><text x='100' y='155' text-anchor='middle' font-family='Georgia,serif' font-size='14' fill='rgba(255,255,255,0.5)'>♞ JAMALI</text></svg>`;
+            const svg = `<svg xmlns=%27http://www.w3.org/2000/svg%27 width=%27200%27 height=%27200%27><defs><linearGradient id=%27g%27 x1=%270%25%27 y1=%270%25%27 x2=%27100%25%27 y2=%27100%25%27><stop offset=%270%25%27 style=%27stop-color:%23${bg};stop-opacity:1%27/><stop offset=%27100%25%27 style=%27stop-color:%23c084fc;stop-opacity:0.4%27/></linearGradient></defs><rect width=%27200%27 height=%27200%27 fill=%27url(%23g)%27/><text x=%27100%27 y=%27115%27 text-anchor=%27middle%27 font-family=%27Georgia,serif%27 font-size=%2768%27 font-weight=%27bold%27 fill=%27rgba(255,255,255,0.9)%27>${initials}</text><text x=%27100%27 y=%27155%27 text-anchor=%27middle%27 font-family=%27Georgia,serif%27 font-size=%2714%27 fill=%27rgba(255,255,255,0.5)%27>♞ JAMALI</text></svg>`;
             return `data:image/svg+xml,${svg}`;
         }
         function generateProductCardHTML(p) {

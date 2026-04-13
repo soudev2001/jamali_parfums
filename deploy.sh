@@ -110,15 +110,13 @@ if [[ "$INTEGRATE_SARFX" == true ]]; then
   # Générer la config nginx pour sarfx
   cat > /tmp/jamali_vhost.conf << 'NGINXEOF'
 # ─── Virtual host Jamali Parfum ──────────────
-# Remplacez "jamali.votredomaine.com" par votre vrai domaine
-# ou commentez la ligne server_name pour utiliser l'IP seule.
 upstream jamali_backend {
     server jamali-flask:5000;
 }
 
 server {
     listen 80;
-    server_name jamali.votredomaine.com;
+    server_name jamaliparfums.sarfx.io;
 
     server_tokens off;
 
@@ -150,8 +148,8 @@ echo -e "${GREEN}╔════════════════════
 echo -e "${GREEN}║              Déploiement terminé !                   ║${NC}"
 echo -e "${GREEN}╚══════════════════════════════════════════════════════╝${NC}"
 echo ""
-echo -e "  📍 Boutique            : ${YELLOW}http://195.35.28.227:8080${NC}"
-echo -e "  🔐 Admin CMS           : ${YELLOW}http://195.35.28.227:8080/admin${NC}"
+echo -e "  📍 Boutique            : ${YELLOW}https://jamaliparfums.sarfx.io${NC}"
+echo -e "  🔐 Admin CMS           : ${YELLOW}https://jamaliparfums.sarfx.io/admin${NC}"
 echo ""
 echo -e "  Commandes utiles :"
 echo -e "    Logs Flask  : docker compose logs -f jamali-flask"
